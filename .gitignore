@@ -1,0 +1,9 @@
+# Intellij
+.idea
+*.iml
+
+# Generated
+target
+
+# Binary
+graalvm
