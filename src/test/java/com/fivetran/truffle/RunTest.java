@@ -28,18 +28,18 @@ public class RunTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
         PolyglotEngine engine = PolyglotEngine.newBuilder()
-                                              .setIn(in)
-                                              .setOut(out)
-                                              .setErr(err)
-                                              .build();
+                .setIn(in)
+                .setOut(out)
+                .setErr(err)
+                .build();
         Source source = Source.newBuilder("?")
-                              .mimeType(TruffleSqlLanguage.MIME_TYPE)
-                              .name("Main.sql")
-                              .build();
+                .mimeType(TruffleSqlLanguage.MIME_TYPE)
+                .name("Main.sql")
+                .build();
         TruffleSqlContext context = (TruffleSqlContext) engine.getLanguages()
-                                                              .get(TruffleSqlLanguage.MIME_TYPE)
-                                                              .getGlobalObject()
-                                                              .get();
+                .get(TruffleSqlLanguage.MIME_TYPE)
+                .getGlobalObject()
+                .get();
         CallTarget main = TruffleSqlLanguage.INSTANCE.parse(source, null);
 
         main.call(context);
