@@ -9,21 +9,17 @@ public class TruffleSqlContext extends ExecutionContext {
     public final BufferedReader in;
     public final PrintWriter out, err;
 
-    public TruffleSqlContext(TruffleLanguage.Env env) {
-        this.in = new BufferedReader(new InputStreamReader(env.in()));
-        this.out = new PrintWriter(env.out());
-        this.err = new PrintWriter(env.err());
+    public static TruffleSqlContext fromEnv(TruffleLanguage.Env env) {
+        return new TruffleSqlContext(env.in(), env.out(), env.err());
     }
 
-    public TruffleSqlContext(BufferedReader in, PrintWriter out, PrintWriter err) {
-        this.in = in;
-        this.out = out;
-        this.err = err;
+    public static TruffleSqlContext fromStreams(InputStream in, OutputStream out, OutputStream err) {
+        return new TruffleSqlContext(in, out, err);
     }
 
-    public TruffleSqlContext(InputStream in, OutputStream out, OutputStream err) {
+    private TruffleSqlContext(InputStream in, OutputStream out, OutputStream err) {
         this.in = new BufferedReader(new InputStreamReader(in));
-        this.out = new PrintWriter(out);
-        this.err = new PrintWriter(err);
+        this.out = new PrintWriter(out, true);
+        this.err = new PrintWriter(err, true);
     }
 }

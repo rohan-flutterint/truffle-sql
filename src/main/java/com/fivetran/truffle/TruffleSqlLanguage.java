@@ -30,7 +30,7 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
 
     @Override
     protected TruffleSqlContext createContext(Env env) {
-        return new TruffleSqlContext(env);
+        return TruffleSqlContext.fromEnv(env);
     }
 
     @Override
