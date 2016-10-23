@@ -31,10 +31,8 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
 
     @Override
     protected CallTarget parse(Source source, Node context, String... strings) {
-        if (!(context instanceof PlanPseudoNode)) {
-            // TODO invoke SQL parser / validator / planner, convert to PseudoSource
-            throw new UnsupportedOperationException();
-        }
+        if (context == null || !(context instanceof PlanPseudoNode))
+            throw new IllegalArgumentException("Expected PlanPseudoNode but found " + context);
 
         PlanPseudoNode plan = (PlanPseudoNode) context;
         LocalCompiler compiler = new LocalCompiler();
