@@ -2,10 +2,15 @@ package com.fivetran.truffle;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.MissingMIMETypeException;
 import com.oracle.truffle.api.source.MissingNameException;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.vm.PolyglotEngine;
+import org.apache.calcite.rel.RelRoot;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,15 +37,20 @@ public class RunTest {
                 .setOut(out)
                 .setErr(err)
                 .build();
-        Source source = Source.newBuilder("?")
-                .mimeType(TruffleSqlLanguage.MIME_TYPE)
-                .name("Main.sql")
-                .build();
         TruffleSqlContext context = (TruffleSqlContext) engine.getLanguages()
                 .get(TruffleSqlLanguage.MIME_TYPE)
                 .getGlobalObject()
                 .get();
-        CallTarget main = TruffleSqlLanguage.INSTANCE.parse(source, null);
+        CallTarget main = Truffle.getRuntime().createCallTarget(new RootNode(TruffleSqlLanguage.class, SourceSection.createUnavailable("?", "Test.sql"), new FrameDescriptor()) {
+            @Override
+            public Object execute(VirtualFrame frame) {
+                TruffleSqlContext context = (TruffleSqlContext) frame.getArguments()[0];
+
+                context.out.println("Hello world!");
+
+                return null;
+            }
+        });
 
         main.call(context);
 
