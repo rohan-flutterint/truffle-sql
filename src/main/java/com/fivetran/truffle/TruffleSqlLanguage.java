@@ -1,7 +1,6 @@
 package com.fivetran.truffle;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.ExecutionContext;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -12,10 +11,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 
 @TruffleLanguage.Registration(name = "SL", version = "0.1", mimeType = TruffleSqlLanguage.MIME_TYPE)
 public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
@@ -34,17 +30,18 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
     }
 
     @Override
-    protected CallTarget parse(Source source, Node node, String... strings) throws IOException {
-        return Truffle.getRuntime().createCallTarget(new RootNode(TruffleSqlLanguage.class, SourceSection.createUnavailable("Fake", "main"), new FrameDescriptor()) {
-            @Override
-            public Object execute(VirtualFrame frame) {
-                TruffleSqlContext context = (TruffleSqlContext) frame.getArguments()[0];
+    protected CallTarget parse(Source source, Node context, String... strings) {
+        if (!(context instanceof PlanPseudoNode)) {
+            // TODO invoke SQL parser / validator / planner, convert to PseudoSource
+            throw new UnsupportedOperationException();
+        }
 
-                context.out.println("Hello world!");
+        PlanPseudoNode plan = (PlanPseudoNode) context;
+        LocalCompiler compiler = new LocalCompiler();
 
-                return null;
-            }
-        });
+        plan.plan.rel.accept(compiler);
+
+        return Truffle.getRuntime().createCallTarget(compiler.compiled);
     }
 
     @Override

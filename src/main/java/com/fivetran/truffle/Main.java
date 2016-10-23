@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -22,6 +24,16 @@ public class Main {
                     .mimeType(TruffleSqlLanguage.MIME_TYPE)
                     .name(path.getFileName().toString())
                     .build();
+            CallTarget main = TruffleSqlLanguage.INSTANCE.parse(source, null);
+
+            callWithRootContext(main, System.out::println);
+        }
+    }
+
+    public static void callWithRootContext(CallTarget main, Sink forEachRow) {
+        try {
+            Objects.requireNonNull(main, "Program is null");
+
             PolyglotEngine engine = PolyglotEngine.newBuilder()
                     .setIn(System.in)
                     .setOut(System.out)
@@ -31,9 +43,10 @@ public class Main {
                     .get(TruffleSqlLanguage.MIME_TYPE)
                     .getGlobalObject()
                     .get();
-            CallTarget main = TruffleSqlLanguage.INSTANCE.parse(source, null);
 
-            main.call(context);
+            main.call(context, forEachRow);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
