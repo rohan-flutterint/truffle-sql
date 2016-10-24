@@ -7,6 +7,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 
 public class SqlDriverTest {
     @BeforeClass
@@ -19,12 +25,23 @@ public class SqlDriverTest {
     public void select1() throws SQLException {
         try (Connection conn = DriverManager.getConnection("jdbc:truffle://localhost:80")) {
             ResultSet r = conn.createStatement().executeQuery(
-                    "SELECT * FROM test_schema.test_table"
+                    "WITH test_values (id, attr) AS (" +
+                    "  VALUES (1, 'one'), (2, 'two')" +
+                    ") " +
+                    "SELECT * FROM test_values"
             );
+            List<Object[]> results = new ArrayList<>();
 
             while (r.next()) {
-                System.out.println(r.getInt("id") + "\t" + r.getString("attr"));
+                Object[] row = {r.getLong("ID"), r.getString("ATTR")};
+
+                results.add(row);
             }
+
+            assertThat(results, containsInAnyOrder(new Object[][] {
+                    {1L, "one"},
+                    {2L, "two"}
+            }));
         }
     }
 }

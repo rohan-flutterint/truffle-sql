@@ -11,6 +11,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
 		<calcite.version>1.10.0</calcite.version>
+		<parquet.version>1.8.1</parquet.version>
+		<hadoop.version>2.6.0</hadoop.version>
 	</properties>
 
 	<dependencies>
@@ -41,11 +43,6 @@
 		<!-- SQL parser -->
 		<dependency>
 			<groupId>org.apache.calcite</groupId>
-			<artifactId>calcite-avatica</artifactId>
-			<version>1.6.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.calcite</groupId>
 			<artifactId>calcite-core</artifactId>
 			<version>${calcite.version}</version>
 		</dependency>
@@ -53,6 +50,14 @@
 			<groupId>org.apache.calcite</groupId>
 			<artifactId>calcite-linq4j</artifactId>
 			<version>${calcite.version}</version>
+		</dependency>
+
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

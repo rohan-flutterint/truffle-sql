@@ -1,13 +1,15 @@
 package com.fivetran.truffle;
 
+import com.fivetran.truffle.compiler.CompileRel;
+import com.fivetran.truffle.compiler.PlanPseudoNode;
+import com.fivetran.truffle.compiler.Rel;
+import com.fivetran.truffle.compiler.Root;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -35,11 +37,15 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
             throw new IllegalArgumentException("Expected PlanPseudoNode but found " + context);
 
         PlanPseudoNode plan = (PlanPseudoNode) context;
-        LocalCompiler compiler = new LocalCompiler();
 
-        plan.plan.rel.accept(compiler);
+        // Compile query into Truffle program
+        Rel compiled = CompileRel.compile(plan.plan.rel);
 
-        return Truffle.getRuntime().createCallTarget(compiler.compiled);
+        // Wrap it in a CallTarget
+        SourceSection sourceSection = source.createSection("SELECT", 1);
+        Root root = new Root(compiled, TruffleSqlLanguage.class, sourceSection, new FrameDescriptor());
+
+        return Truffle.getRuntime().createCallTarget(root);
     }
 
     @Override

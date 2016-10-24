@@ -1,6 +1,6 @@
 package com.fivetran.truffle;
 
-import com.google.common.collect.Lists;
+import com.fivetran.truffle.compiler.PlanPseudoNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.source.Source;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -36,7 +36,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 class TruffleMeta extends MetaImpl {
     public TruffleMeta(AvaticaConnection connection) {
@@ -56,7 +55,7 @@ class TruffleMeta extends MetaImpl {
         try {
             SqlParser parser = SqlParser.create(sql, SqlParser.Config.DEFAULT);
 
-            return parser.parseQuery();
+            return parser.parseStmt();
         } catch (SqlParseException e) {
             throw new RuntimeException(e);
         }
@@ -179,6 +178,15 @@ class TruffleMeta extends MetaImpl {
                                            String sql,
                                            long maxRowCount,
                                            PrepareCallback callback) throws NoSuchStatementException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExecuteResult prepareAndExecute(StatementHandle h,
+                                           String sql,
+                                           long maxRowCount,
+                                           int maxRowsInFirstFrame,
+                                           PrepareCallback callback) throws NoSuchStatementException {
         SqlNode parsed = parse(sql);
         Signature signature = validate(sql, parsed);
         RelRoot plan = plan(parsed);
@@ -202,6 +210,18 @@ class TruffleMeta extends MetaImpl {
     }
 
     @Override
+    public ExecuteBatchResult prepareAndExecuteBatch(StatementHandle h,
+                                                     List<String> sqlCommands) throws NoSuchStatementException {
+        return null;
+    }
+
+    @Override
+    public ExecuteBatchResult executeBatch(StatementHandle h,
+                                           List<List<TypedValue>> parameterValues) throws NoSuchStatementException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Frame fetch(StatementHandle h,
                        long offset,
                        int fetchMaxRowCount) throws NoSuchStatementException, MissingResultsException {
@@ -215,6 +235,13 @@ class TruffleMeta extends MetaImpl {
     public ExecuteResult execute(StatementHandle h,
                                  List<TypedValue> parameterValues,
                                  long maxRowCount) throws NoSuchStatementException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExecuteResult execute(StatementHandle h,
+                                 List<TypedValue> parameterValues,
+                                 int maxRowsInFirstFrame) throws NoSuchStatementException {
         throw new UnsupportedOperationException();
     }
 

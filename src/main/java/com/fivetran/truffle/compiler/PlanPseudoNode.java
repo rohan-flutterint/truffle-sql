@@ -1,5 +1,6 @@
-package com.fivetran.truffle;
+package com.fivetran.truffle.compiler;
 
+import com.fivetran.truffle.TruffleSqlLanguage;
 import com.oracle.truffle.api.nodes.Node;
 import org.apache.calcite.rel.RelRoot;
 
