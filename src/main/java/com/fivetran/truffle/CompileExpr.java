@@ -1,68 +1,68 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 import org.apache.calcite.rex.*;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public class CompileExpr implements RexVisitor<Expr> {
+public class CompileExpr implements RexVisitor<XIterator> {
     @Nullable
-    private final Rel input;
+    private final XRel input;
 
-    public CompileExpr(Rel input) {
+    public CompileExpr(XRel input) {
         this.input = input;
     }
 
 
     @Override
-    public Expr visitInputRef(RexInputRef inputRef) {
+    public XIterator visitInputRef(RexInputRef inputRef) {
         Objects.requireNonNull(input);
 
         return input.get(inputRef.getIndex());
     }
 
     @Override
-    public Expr visitLocalRef(RexLocalRef localRef) {
+    public XIterator visitLocalRef(RexLocalRef localRef) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitLiteral(RexLiteral literal) {
+    public XIterator visitLiteral(RexLiteral literal) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitCall(RexCall call) {
+    public XIterator visitCall(RexCall call) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitOver(RexOver over) {
+    public XIterator visitOver(RexOver over) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitCorrelVariable(RexCorrelVariable correlVariable) {
+    public XIterator visitCorrelVariable(RexCorrelVariable correlVariable) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitDynamicParam(RexDynamicParam dynamicParam) {
+    public XIterator visitDynamicParam(RexDynamicParam dynamicParam) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitRangeRef(RexRangeRef rangeRef) {
+    public XIterator visitRangeRef(RexRangeRef rangeRef) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitFieldAccess(RexFieldAccess fieldAccess) {
+    public XIterator visitFieldAccess(RexFieldAccess fieldAccess) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Expr visitSubQuery(RexSubQuery subQuery) {
+    public XIterator visitSubQuery(RexSubQuery subQuery) {
         throw new UnsupportedOperationException();
     }
 }

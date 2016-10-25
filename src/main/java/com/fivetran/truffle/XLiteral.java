@@ -1,4 +1,4 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.logical.LogicalValues;
@@ -9,12 +9,12 @@ import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 
-class LiteralIterator extends Expr {
+class XLiteral extends XIterator {
     private final LogicalValues values;
     private final int column;
     private int row;
 
-    public LiteralIterator(LogicalValues values, int column) {
+    public XLiteral(LogicalValues values, int column) {
         this.values = values;
         this.column = column;
     }

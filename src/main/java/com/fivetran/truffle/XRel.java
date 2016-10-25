@@ -1,18 +1,18 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 import com.oracle.truffle.api.nodes.*;
 
 /**
  * Represents a relation - a physical table, a subquery, or a set of values
  */
-public class Rel extends Node {
-    private final Expr[] columns;
+public class XRel extends Node {
+    private final XIterator[] columns;
 
-    Rel(Expr[] columns) {
+    XRel(XIterator[] columns) {
         this.columns = columns;
     }
 
-    public Expr get(int column) {
+    public XIterator get(int column) {
         return columns[column];
     }
 

@@ -1,4 +1,4 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 import com.oracle.truffle.api.nodes.Node;
 
@@ -6,7 +6,7 @@ import com.oracle.truffle.api.nodes.Node;
  * Iterate over values in a column of a Dremel-style nested schema.
  * Very similar to {@link org.apache.parquet.column.ColumnReader}
  */
-public abstract class Expr extends Node {
+public abstract class XIterator extends Node {
 
     /**
      * @return number of values in this column

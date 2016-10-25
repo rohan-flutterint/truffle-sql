@@ -1,18 +1,16 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 
-import com.fivetran.truffle.Sink;
-import com.fivetran.truffle.TruffleSqlContext;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class Root extends RootNode {
-    final Rel query;
+public class XRoot extends RootNode {
+    final XRel query;
 
-    public Root(Rel query, Class<? extends TruffleLanguage> language, SourceSection sourceSection, FrameDescriptor frameDescriptor) {
+    public XRoot(XRel query, Class<? extends TruffleLanguage> language, SourceSection sourceSection, FrameDescriptor frameDescriptor) {
         super(language, sourceSection, frameDescriptor);
 
         this.query = query;
@@ -29,7 +27,7 @@ public class Root extends RootNode {
             Object[] tuple = new Object[query.size()];
 
             for (int column = 0; column < query.size(); column++) {
-                Expr it = query.get(column);
+                XIterator it = query.get(column);
 
                 // TODO actually implement repetition, definition levels
                 assert it.getCurrentRepetitionLevel() == 0;

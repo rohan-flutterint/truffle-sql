@@ -1,4 +1,4 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 public class WrongTypeException extends RuntimeException {
 }

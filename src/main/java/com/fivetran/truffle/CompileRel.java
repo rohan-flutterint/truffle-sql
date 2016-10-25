@@ -1,4 +1,4 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttle;
@@ -17,9 +17,9 @@ public class CompileRel implements RelShuttle {
     // TODO actually compile
 
     // Used to sneakily return the result to
-    private Rel compiled;
+    private XRel compiled;
 
-    public static Rel compile(RelNode rel) {
+    public static XRel compile(RelNode rel) {
         CompileRel compiler = new CompileRel();
 
         rel.accept(compiler);
@@ -44,12 +44,12 @@ public class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalValues values) {
-        Expr[] columns = new Expr[values.getRowType().getFieldCount()];
+        XIterator[] columns = new XIterator[values.getRowType().getFieldCount()];
 
         for (int column = 0; column < columns.length; column++)
-            columns[column] = new LiteralIterator(values, column);
+            columns[column] = new XLiteral(values, column);
 
-        compiled = new Rel(columns);
+        compiled = new XRel(columns);
 
         return values;
     }
@@ -65,13 +65,13 @@ public class CompileRel implements RelShuttle {
         assert project.getInputs().size() <= 1 : "LogicalProject has " + project.getInputs().size() + " inputs";
 
         List<RexNode> childExps = project.getChildExps();
-        Rel input = project.getInputs().isEmpty() ? null : compile(project.getInput(0));
+        XRel input = project.getInputs().isEmpty() ? null : compile(project.getInput(0));
 
-        Expr[] columns = childExps.stream()
+        XIterator[] columns = childExps.stream()
                 .map(child -> child.accept(new CompileExpr(input)))
-                .toArray(Expr[]::new);
+                .toArray(XIterator[]::new);
 
-        compiled = new Rel(columns);
+        compiled = new XRel(columns);
 
         return project;
     }

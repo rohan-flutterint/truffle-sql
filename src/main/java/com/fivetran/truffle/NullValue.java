@@ -1,4 +1,4 @@
-package com.fivetran.truffle.compiler;
+package com.fivetran.truffle;
 
 /**
  * Internal representation of Null

@@ -1,6 +1,5 @@
 package com.fivetran.truffle;
 
-import com.fivetran.truffle.compiler.PlanPseudoNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.source.Source;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -161,7 +160,7 @@ class TruffleMeta extends MetaImpl {
                 .mimeType(TruffleSqlLanguage.MIME_TYPE)
                 .name("?")
                 .build();
-        CallTarget program = TruffleSqlLanguage.INSTANCE.parse(source, new PlanPseudoNode(plan));
+        CallTarget program = TruffleSqlLanguage.INSTANCE.parse(source, new XPlan(plan));
 
         // Execute the program and put results into a list
         List<Object[]> results = new ArrayList<>();
