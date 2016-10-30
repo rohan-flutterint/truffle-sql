@@ -23,6 +23,9 @@ import java.util.Calendar;
 import java.util.List;
 
 public class Types {
+    /**
+     * Describe the stack frame we will use to represent a relation
+     */
     static FrameDescriptor frame(RelDataType rowType) {
         List<RelDataTypeField> fields = rowType.getFieldList();
         FrameDescriptor describe = new FrameDescriptor();
@@ -36,6 +39,9 @@ public class Types {
         return describe;
     }
 
+    /**
+     * What type of slot do we need to represent a non-nullable value of a type?
+     */
     static FrameSlotKind kind(SqlTypeName type) {
         switch (type) {
             case BOOLEAN:
@@ -55,6 +61,9 @@ public class Types {
         }
     }
 
+    /**
+     * Convert a SQL literal to a runtime value
+     */
     static Object object(RexLiteral literal) {
         if (RexLiteral.isNullLiteral(literal))
             return SqlNull.INSTANCE;
