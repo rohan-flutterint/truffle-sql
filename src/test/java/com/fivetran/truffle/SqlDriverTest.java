@@ -19,7 +19,7 @@ public class SqlDriverTest {
     }
 
     @Test
-    public void literal() throws SQLException {
+    public void withExpression() throws SQLException {
         List<Object[]> results = query(
                 "WITH test_values (id, attr) AS (" +
                 "  VALUES (1, 'one'), (2, 'two')" +
@@ -34,11 +34,11 @@ public class SqlDriverTest {
     }
 
     @Test
-    public void select1() throws SQLException {
-        List<Object[]> results = query("SELECT 1, 'one'");
+    public void literals() throws SQLException {
+        List<Object[]> results = query("SELECT 1, 1.0, 'one', DATE '2016-01-01', TIMESTAMP '2016-01-01 00:00:00'");
 
         assertThat(results, contains(new Object[][] {
-                {1L, "one"}
+                {1L, 1.0d, "one", Date.valueOf("2016-01-01"), Timestamp.valueOf("2016-01-01 00:00:00")}
         }));
     }
 

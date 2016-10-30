@@ -3,6 +3,7 @@ package com.fivetran.truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
+import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
@@ -11,6 +12,12 @@ import org.apache.calcite.sql.type.BasicSqlType;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.NlsString;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.List;
@@ -72,7 +79,7 @@ public class Types {
             case TIME:
                 return ((Calendar) value).toInstant().atOffset(ZoneOffset.UTC).toLocalTime();
             case TIMESTAMP:
-                ((Calendar) value).toInstant();
+                return ((Calendar) value).toInstant();
             case INTERVAL_YEAR:
             case INTERVAL_YEAR_MONTH:
             case INTERVAL_MONTH:
@@ -130,6 +137,57 @@ public class Types {
             case Illegal:
             default:
                 return type;
+        }
+    }
+
+    /**
+     * Convert our internal representation to the one Avatica is looking for.
+     */
+    public static Object resultSet(Object value, RelDataType type) {
+        if (value == null)
+            return null;
+
+        switch (type.getSqlTypeName()) {
+            case BOOLEAN:
+                assert value instanceof Boolean;
+
+                return value;
+            case TINYINT:
+            case SMALLINT:
+            case INTEGER:
+            case BIGINT:
+                assert value instanceof Long;
+
+                return value;
+            case DECIMAL:
+            case FLOAT:
+            case REAL:
+            case DOUBLE:
+                assert value instanceof Double;
+
+                return value;
+            case DATE:
+                LocalDate date = (LocalDate) value;
+                Date sqlDate = Date.valueOf(date);
+
+                return sqlDate.getTime() / DateTimeUtils.MILLIS_PER_DAY;
+            case TIME:
+                LocalTime time = (LocalTime) value;
+                Time sqlTime = Time.valueOf(time);
+
+                return sqlTime.getTime() % DateTimeUtils.MILLIS_PER_DAY;
+            case TIMESTAMP:
+                Instant instant = (Instant) value;
+                Timestamp sqlInstant = Timestamp.from(instant);
+
+                return sqlInstant.getTime();
+            case CHAR:
+            case VARCHAR:
+                assert value instanceof String;
+
+                return value;
+            default:
+                throw new RuntimeException("Don't know how to convert to " + type.getSqlTypeName());
         }
     }
 }

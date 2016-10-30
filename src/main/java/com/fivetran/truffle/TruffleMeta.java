@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 class TruffleMeta extends MetaImpl {
     public TruffleMeta(AvaticaConnection connection) {
@@ -158,7 +159,17 @@ class TruffleMeta extends MetaImpl {
         return converter.convertQuery(parsed, true, true);
     }
 
-    private final Map<StatementHandle, List<?>> runningQueries = new ConcurrentHashMap<>();
+    private final Map<StatementHandle, Running> runningQueries = new ConcurrentHashMap<>();
+
+    private static class Running {
+        public final List<Object[]> rows;
+        public final RelDataType type;
+
+        private Running(List<Object[]> rows, RelDataType type) {
+            this.rows = rows;
+            this.type = type;
+        }
+    }
 
     /**
      * Start running a query
@@ -200,7 +211,7 @@ class TruffleMeta extends MetaImpl {
         Main.callWithRootContext(program);
 
         // Stash the list so fetch(StatementHandle) can get it
-        runningQueries.put(handle, results);
+        runningQueries.put(handle, new Running(results, plan.validatedRowType));
     }
 
     @Override
@@ -255,10 +266,25 @@ class TruffleMeta extends MetaImpl {
     public Frame fetch(StatementHandle h,
                        long offset,
                        int fetchMaxRowCount) throws NoSuchStatementException, MissingResultsException {
-        List<?> all = runningQueries.get(h);
-        List<?> slice = all.subList((int) offset, all.size());
+        Running running = runningQueries.get(h);
+        List<Object> slice = running.rows
+                .stream()
+                .skip(offset)
+                .limit(fetchMaxRowCount)
+                .map(row -> {
+                    Object[] after = new Object[row.length];
 
-        return new Frame(offset, slice.isEmpty(), (Iterable<Object>) slice);
+                    for (int column = 0; column < row.length; column++) {
+                        RelDataType type = running.type.getFieldList().get(column).getType();
+
+                        after[column] = com.fivetran.truffle.Types.resultSet(row[column], type);
+                    }
+
+                    return after;
+                })
+                .collect(Collectors.toList());
+
+        return new Frame(offset, slice.isEmpty(), slice);
     }
 
     @Override
