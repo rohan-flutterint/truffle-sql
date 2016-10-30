@@ -34,6 +34,22 @@ public class SqlDriverTest {
     }
 
     @Test
+    public void nullValue() throws SQLException {
+        List<Object[]> results = query(
+                "WITH test_values (x, y) AS (" +
+                "  VALUES (1, 10), (2, cast(null as INTEGER)) " +
+                ") " +
+                "SELECT x, y, x + y " +
+                "FROM test_values"
+        );
+
+        assertThat(results, contains(new Object[][] {
+                {1L, 10L, 11L},
+                {2L, null, null}
+        }));
+    }
+
+    @Test
     public void literals() throws SQLException {
         List<Object[]> results = query("SELECT 1, 1.0, 'one', DATE '2016-01-01', TIMESTAMP '2016-01-01 00:00:00'");
 

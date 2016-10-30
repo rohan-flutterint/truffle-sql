@@ -6,6 +6,7 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 import java.io.IOException;
 
@@ -35,7 +36,11 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         // Compile query into Truffle program
         RowSource compiled = CompileRel.compile(plan.plan.rel, plan.then);
 
-        return Truffle.getRuntime().createCallTarget(compiled);
+        // TODO
+        SourceSection sourceSection = SourceSection.createUnavailable("?", "Compiled query");
+        RelRoot root = new RelRoot(sourceSection, compiled);
+
+        return Truffle.getRuntime().createCallTarget(root);
     }
 
     @Override

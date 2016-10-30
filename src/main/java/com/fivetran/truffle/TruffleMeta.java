@@ -185,7 +185,7 @@ class TruffleMeta extends MetaImpl {
         FrameDescriptor resultFrame = com.fivetran.truffle.Types.frame(plan.validatedRowType);
         RowSink then = new RowSink(resultFrame) {
             @Override
-            public Object execute(VirtualFrame frame) {
+            public void executeVoid(VirtualFrame frame) {
                 List<? extends FrameSlot> slots = resultFrame.getSlots();
                 Object[] values = new Object[slots.size()];
 
@@ -200,8 +200,6 @@ class TruffleMeta extends MetaImpl {
                 }
 
                 results.add(values);
-
-                return QueryReturn.INSTANCE;
             }
         };
 

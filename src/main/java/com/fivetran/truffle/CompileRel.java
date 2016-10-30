@@ -65,7 +65,7 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalValues values) {
-        compiled = new RelLiteral(SourceSection.createUnavailable("SQL query", "Literal"), values, then);
+        compiled = new RelLiteral(values, then);
 
         return values;
     }
@@ -83,7 +83,7 @@ class CompileRel implements RelShuttle {
         RelProject select = new RelProject(SourceSection.createUnavailable("SQL query", "Project"), project, then);
 
         if (project.getInputs().isEmpty())
-            compiled = new RelEmpty(SourceSection.createUnavailable("SQL query", "Empty"), select);
+            compiled = new RelEmpty(select);
         else
             compiled = compile(project.getInputs().get(0), select);
 
@@ -102,7 +102,14 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalUnion union) {
-        throw new UnsupportedOperationException();
+        RowSource[] sources = union.getInputs()
+                .stream()
+                .map(i -> compile(i, then))
+                .toArray(RowSource[]::new);
+
+        compiled = new RelUnion(sources);
+
+        return union;
     }
 
     @Override

@@ -43,7 +43,7 @@ public class RelProject extends RowTransform {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
+    public void executeVoid(VirtualFrame frame) {
         List<? extends FrameSlot> slots = resultFrame.getSlots();
         VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, resultFrame);
 
@@ -54,9 +54,7 @@ public class RelProject extends RowTransform {
             thenFrame.setObject(slot, value);
         }
 
-        then.execute(thenFrame);
-
-        return QueryReturn.INSTANCE;
+        then.executeVoid(thenFrame);
     }
 
 }

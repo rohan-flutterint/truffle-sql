@@ -2,8 +2,6 @@ package com.fivetran.truffle;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.source.SourceSection;
 
 /**
  * A placeholder when the FROM clause is absent.
@@ -13,16 +11,16 @@ public class RelEmpty extends RowSource {
 
     private final FrameDescriptor resultType;
 
-    public RelEmpty(SourceSection source, RowTransform then) {
-        super(source, then);
+    @Child
+    private RowTransform then;
 
+    public RelEmpty(RowTransform then) {
         this.resultType = new FrameDescriptor();
+        this.then = then;
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
-        then.execute(Truffle.getRuntime().createVirtualFrame(new Object[] { }, resultType));
-
-        return QueryReturn.INSTANCE;
+    public void executeVoid() {
+        then.executeVoid(Truffle.getRuntime().createVirtualFrame(new Object[] { }, resultType));
     }
 }

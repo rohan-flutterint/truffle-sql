@@ -22,5 +22,5 @@ public abstract class RowSink extends Node {
         this.sourceFrame = sourceFrame;
     }
 
-    public abstract Object execute(VirtualFrame frame);
+    public abstract void executeVoid(VirtualFrame frame);
 }

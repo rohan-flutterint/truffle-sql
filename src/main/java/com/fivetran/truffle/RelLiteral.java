@@ -4,7 +4,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.rel.logical.LogicalValues;
 import org.apache.calcite.rex.RexLiteral;
 
@@ -17,17 +16,17 @@ public class RelLiteral extends RowSource {
     private final LogicalValues values;
     private final FrameDescriptor resultType;
 
-    public RelLiteral(SourceSection source, LogicalValues values, RowSink then) {
-        super(source, then);
+    @Child
+    private RowSink then;
 
+    public RelLiteral(LogicalValues values, RowSink then) {
         this.values = values;
         this.resultType = Types.frame(values.getRowType());
+        this.then = then;
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
-        assert frame.getFrameDescriptor().getSize() == 0 : "Input to literal should be empty but was " + frame.getFrameDescriptor();
-
+    public void executeVoid() {
         VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, resultType);
         List<? extends FrameSlot> slots = resultType.getSlots();
 
@@ -40,9 +39,7 @@ public class RelLiteral extends RowSource {
                 thenFrame.setObject(slot, value);
             }
 
-            then.execute(thenFrame);
+            then.executeVoid(thenFrame);
         }
-
-        return QueryReturn.INSTANCE;
     }
 }
