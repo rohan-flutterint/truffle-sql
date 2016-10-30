@@ -49,6 +49,9 @@ public class Types {
     }
 
     static Object object(RexLiteral literal) {
+        if (RexLiteral.isNullLiteral(literal))
+            return SqlNull.INSTANCE;
+
         Object value = literal.getValue();
 
         switch (literal.getType().getSqlTypeName()) {

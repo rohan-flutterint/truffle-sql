@@ -51,6 +51,72 @@ public class SqlDriverTest {
         }));
     }
 
+    @Test
+    public void subtract() throws SQLException {
+        List<Object[]> results = query("SELECT 10 - 2 - 1 AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {7L}
+        }));
+    }
+
+    @Test
+    public void multiply() throws SQLException {
+        List<Object[]> results = query("SELECT 10 * 2 AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {20L}
+        }));
+    }
+
+    @Test
+    public void divide() throws SQLException {
+        List<Object[]> results = query("SELECT 10 / 2 AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {5L}
+        }));
+    }
+
+    @Test
+    public void and() throws SQLException {
+        List<Object[]> results = query("SELECT TRUE AND FALSE AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {false}
+        }));
+    }
+
+    @Test
+    public void or() throws SQLException {
+        List<Object[]> results = query("SELECT TRUE OR FALSE AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {true}
+        }));
+    }
+
+    @Test
+    public void equals() throws SQLException {
+        List<Object[]> results = query("SELECT 1 = 1, 1.0 = 1.0, 'one' = 'one' AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {true, true, true}
+        }));
+
+        results = query("SELECT 1 = 2, 1.0 = 2.0, 'one' = 'two' AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {false, false, false}
+        }));
+
+        results = query("SELECT 1 = cast(null AS INTEGER), cast(null AS INTEGER) = cast(null AS INTEGER) AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {false, false}
+        }));
+    }
+
     private List<Object[]> query(String sql) throws SQLException {
         List<Object[]> results = new ArrayList<>();
 

@@ -42,4 +42,14 @@ public abstract class ExprLiteral extends ExprBase {
 
         };
     }
+
+    static ExprLiteral Null() {
+        return new ExprLiteral() {
+            @Override
+            public Object executeGeneric(VirtualFrame frame) {
+                return SqlNull.INSTANCE;
+            }
+
+        };
+    }
 }

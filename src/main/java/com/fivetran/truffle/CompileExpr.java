@@ -3,7 +3,6 @@ package com.fivetran.truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.*;
 import org.apache.calcite.sql.type.SqlTypeName;
 
@@ -35,6 +34,9 @@ class CompileExpr implements RexVisitor<ExprBase> {
 
     @Override
     public ExprBase visitLiteral(RexLiteral literal) {
+        if (RexLiteral.isNullLiteral(literal))
+            return ExprLiteral.Null();
+
         Object value = Types.object(literal);
         SqlTypeName type = literal.getType().getSqlTypeName();
         FrameSlotKind kind = Types.kind(type);
@@ -58,13 +60,13 @@ class CompileExpr implements RexVisitor<ExprBase> {
     public ExprBase visitCall(RexCall call) {
         switch (call.getKind()) {
             case TIMES:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprMultiplyNodeGen::create);
             case DIVIDE:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprDivideNodeGen::create);
             case PLUS:
-                return binary(call, (left, right, type) -> ExprPlusNodeGen.create(left, right));
+                return binary(call, ExprPlusNodeGen::create);
             case MINUS:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprMinusNodeGen::create);
             case IN:
                 throw new UnsupportedOperationException();
             case LESS_THAN:
@@ -76,13 +78,13 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case GREATER_THAN_OR_EQUAL:
                 throw new UnsupportedOperationException();
             case EQUALS:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprEqualsNodeGen::create);
             case NOT_EQUALS:
                 throw new UnsupportedOperationException();
             case OR:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprOrNodeGen::create);
             case AND:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprAndNodeGen::create);
             case LIKE:
                 throw new UnsupportedOperationException();
             case SIMILAR:
@@ -176,7 +178,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
 
     @FunctionalInterface
     private interface BinaryConstructor {
-        ExprBinary accept(ExprBase left, ExprBase right, RelDataType type);
+        ExprBinary accept(ExprBase left, ExprBase right);
     }
 
     private ExprBase binary(RexCall call, BinaryConstructor then) {
@@ -186,9 +188,8 @@ class CompileExpr implements RexVisitor<ExprBase> {
 
         ExprBase left = operands.get(0).accept(new CompileExpr(from));
         ExprBase right = operands.get(1).accept(new CompileExpr(from));
-        RelDataType type = call.getType();
 
-        return then.accept(left, right, type);
+        return then.accept(left, right);
     }
 
     @Override
