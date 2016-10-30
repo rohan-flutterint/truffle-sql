@@ -2,7 +2,9 @@ package com.fivetran.truffle;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.apache.calcite.rex.*;
+import org.apache.calcite.sql.type.SqlTypeName;
 
 class CompileExpr implements RexVisitor<ExprBase> {
     /**
@@ -30,7 +32,29 @@ class CompileExpr implements RexVisitor<ExprBase> {
 
     @Override
     public ExprBase visitLiteral(RexLiteral literal) {
-        throw new UnsupportedOperationException();
+        Object value = Types.object(literal);
+        SqlTypeName type = literal.getType().getSqlTypeName();
+        FrameSlotKind kind = Types.kind(type);
+
+        switch (kind) {
+            case Long:
+                return ExprLiteral.Long((long) value);
+            case Int:
+                return ExprLiteral.Int((int) value);
+            case Double:
+                return ExprLiteral.Double((double) value);
+            case Float:
+                return ExprLiteral.Float((float) value);
+            case Boolean:
+                return ExprLiteral.Boolean((boolean) value);
+            case Byte:
+                return ExprLiteral.Byte((byte) value);
+            case Object:
+                return ExprLiteral.Object(value);
+            case Illegal:
+            default:
+                throw new RuntimeException("Don't know what to do with " + literal);
+        }
     }
 
     @Override

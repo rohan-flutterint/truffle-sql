@@ -21,19 +21,19 @@ class RelProject extends RowTransform {
                 .stream()
                 .map(child -> child.accept(new CompileExpr(getFrameDescriptor())))
                 .toArray(ExprBase[]::new);
-        this.resultFrame = CompileRel.frame(project.getRowType());
+        this.resultFrame = Types.frame(project.getRowType());
     }
 
     private static FrameDescriptor sourceFrame(LogicalProject project) {
         if (project.getInputs().isEmpty())
             return new FrameDescriptor();
         else
-            return CompileRel.frame(project.getInputs().get(0).getRowType());
+            return Types.frame(project.getInputs().get(0).getRowType());
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        List<? extends FrameSlot> slots = getFrameDescriptor().getSlots();
+        List<? extends FrameSlot> slots = resultFrame.getSlots();
         VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, resultFrame);
 
         for (int column = 0; column < select.length; column++) {

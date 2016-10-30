@@ -1,10 +1,5 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.rel.RelNode;
@@ -12,11 +7,7 @@ import org.apache.calcite.rel.RelShuttle;
 import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.*;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.sql.type.SqlTypeName;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -145,37 +136,4 @@ public class CompileRel implements RelShuttle {
         throw new UnsupportedOperationException();
     }
 
-    static FrameDescriptor frame(RelDataType rowType) {
-        List<RelDataTypeField> fields = rowType.getFieldList();
-        FrameDescriptor describe = new FrameDescriptor();
-
-        for (int column = 0; column < fields.size(); column++) {
-            SqlTypeName type = fields.get(column).getType().getSqlTypeName();
-            FrameSlotKind kind = kind(type);
-            FrameSlot slot = describe.addFrameSlot(column, kind);
-        }
-
-        return describe;
-    }
-
-    static FrameSlotKind kind(SqlTypeName type) {
-        switch (type) {
-            case BOOLEAN:
-                return FrameSlotKind.Boolean;
-            case TINYINT:
-                return FrameSlotKind.Byte;
-            case SMALLINT:
-            case INTEGER:
-                return FrameSlotKind.Int;
-            case BIGINT:
-                return FrameSlotKind.Long;
-            case FLOAT:
-                return FrameSlotKind.Float;
-            case REAL:
-            case DOUBLE:
-                return FrameSlotKind.Double;
-            default:
-                return FrameSlotKind.Object;
-        }
-    }
 }

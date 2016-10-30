@@ -39,7 +39,10 @@ import java.lang.reflect.Type;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TruffleMeta extends MetaImpl {
@@ -169,7 +172,7 @@ class TruffleMeta extends MetaImpl {
 
         // Create a program that sticks query results in a list
         List<Object[]> results = new ArrayList<>();
-        FrameDescriptor resultFrame = CompileRel.frame(plan.validatedRowType);
+        FrameDescriptor resultFrame = com.fivetran.truffle.Types.frame(plan.validatedRowType);
         SourceSection outputSource = SourceSection.createUnavailable("SQL query", "Output");
         RootNode then = new RootNode(TruffleSqlLanguage.class, outputSource, resultFrame) {
             @Override
