@@ -108,7 +108,8 @@ class TruffleMeta extends MetaImpl {
     }
 
     private SqlValidatorImpl validator() {
-        SqlStdOperatorTable ops = new SqlStdOperatorTable();
+        // .instance() initializes SqlStdOperatorTable by scanning its own public static fields
+        SqlStdOperatorTable ops = SqlStdOperatorTable.instance();
 
         return new SqlValidatorImpl(ops, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
             // No overrides
