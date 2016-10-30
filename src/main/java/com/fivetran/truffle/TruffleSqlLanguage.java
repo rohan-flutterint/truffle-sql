@@ -3,11 +3,9 @@ package com.fivetran.truffle;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 
 import java.io.IOException;
 
@@ -29,19 +27,15 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
 
     @Override
     protected CallTarget parse(Source source, Node context, String... strings) {
-        if (context == null || !(context instanceof XPlan))
+        if (context == null || !(context instanceof ExprPlan))
             throw new IllegalArgumentException("Expected PlanPseudoNode but found " + context);
 
-        XPlan plan = (XPlan) context;
+        ExprPlan plan = (ExprPlan) context;
 
         // Compile query into Truffle program
-        XRel compiled = CompileRel.compile(plan.plan.rel);
+        RowSource compiled = CompileRel.compile(plan.plan.rel, plan.then);
 
-        // Wrap it in a CallTarget
-        SourceSection sourceSection = source.createSection("SELECT", 1);
-        XRoot root = new XRoot(compiled, TruffleSqlLanguage.class, sourceSection, new FrameDescriptor());
-
-        return Truffle.getRuntime().createCallTarget(root);
+        return Truffle.getRuntime().createCallTarget(compiled);
     }
 
     @Override

@@ -5,11 +5,9 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Main {
@@ -26,11 +24,11 @@ public class Main {
                     .build();
             CallTarget main = TruffleSqlLanguage.INSTANCE.parse(source, null);
 
-            callWithRootContext(main, System.out::println);
+            callWithRootContext(main);
         }
     }
 
-    public static void callWithRootContext(CallTarget main, Sink forEachRow) {
+    public static void callWithRootContext(CallTarget main) {
         try {
             Objects.requireNonNull(main, "Program is null");
 
@@ -44,7 +42,7 @@ public class Main {
                     .getGlobalObject()
                     .get();
 
-            main.call(context, forEachRow);
+            main.call(context);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

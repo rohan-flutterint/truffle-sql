@@ -1,7 +1,13 @@
 package com.fivetran.truffle;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
@@ -160,13 +166,37 @@ class TruffleMeta extends MetaImpl {
                 .mimeType(TruffleSqlLanguage.MIME_TYPE)
                 .name("?")
                 .build();
-        CallTarget program = TruffleSqlLanguage.INSTANCE.parse(source, new XPlan(plan));
 
-        // Execute the program and put results into a list
+        // Create a program that sticks query results in a list
         List<Object[]> results = new ArrayList<>();
-        Sink forEachRow = results::add;
+        FrameDescriptor resultFrame = CompileRel.frame(plan.validatedRowType);
+        SourceSection outputSource = SourceSection.createUnavailable("SQL query", "Output");
+        RootNode then = new RootNode(TruffleSqlLanguage.class, outputSource, resultFrame) {
+            @Override
+            public Object execute(VirtualFrame frame) {
+                List<? extends FrameSlot> slots = resultFrame.getSlots();
+                Object[] values = new Object[slots.size()];
 
-        Main.callWithRootContext(program, forEachRow);
+                for (int i = 0; i < slots.size(); i++) {
+                    FrameSlot slot = slots.get(i);
+
+                    try {
+                        values[i] = frame.getObject(slot);
+                    } catch (FrameSlotTypeException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                results.add(values);
+
+                return QueryReturn.INSTANCE;
+            }
+        };
+
+        // Compile the query plan into a Truffle program
+        CallTarget program = TruffleSqlLanguage.INSTANCE.parse(source, new ExprPlan(plan, then));
+
+        Main.callWithRootContext(program);
 
         // Stash the list so fetch(StatementHandle) can get it
         runningQueries.put(handle, results);
