@@ -10,4 +10,14 @@ public abstract class ExprOr extends ExprBinary {
     protected boolean or(boolean left, boolean right) {
         return left || right;
     }
+
+    @Specialization
+    protected boolean or(SqlNull left, boolean right) {
+        return right;
+    }
+
+    @Specialization
+    protected boolean or(boolean left, SqlNull right) {
+        return left;
+    }
 }

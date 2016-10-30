@@ -4,7 +4,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "+")
-public abstract class ExprPlus extends ExprBinary {
+public abstract class ExprPlus extends ExprBinary implements ExprBinaryMath {
 
     @Specialization
     protected long add(long left, long right) {
@@ -16,4 +16,13 @@ public abstract class ExprPlus extends ExprBinary {
     protected double add(double left, double right) {
         return left + right;
     }
+
+//    @Specialization(guards = "isNull(left, right)")
+//    protected SqlNull toNull(Object left, Object right) {
+//        return SqlNull.INSTANCE;
+//    }
+//
+//    protected boolean isNull(Object left, Object right) {
+//        return left == SqlNull.INSTANCE || right == SqlNull.INSTANCE;
+//    }
 }

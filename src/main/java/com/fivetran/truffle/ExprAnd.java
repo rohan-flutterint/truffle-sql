@@ -10,4 +10,14 @@ public abstract class ExprAnd extends ExprBinary {
     protected boolean and(boolean left, boolean right) {
         return left && right;
     }
+
+    @Specialization
+    protected SqlNull or(SqlNull left, boolean right) {
+        return SqlNull.INSTANCE;
+    }
+
+    @Specialization
+    protected SqlNull or(boolean left, SqlNull right) {
+        return SqlNull.INSTANCE;
+    }
 }

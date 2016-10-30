@@ -12,4 +12,9 @@ public class SqlNull implements TruffleObject {
     public ForeignAccess getForeignAccess() {
         return null; // TODO
     }
+
+    @Override
+    public String toString() {
+        return "NULL";
+    }
 }

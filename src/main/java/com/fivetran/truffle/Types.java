@@ -144,7 +144,7 @@ public class Types {
      * Convert our internal representation to the one Avatica is looking for.
      */
     public static Object resultSet(Object value, RelDataType type) {
-        if (value == null)
+        if (value == SqlNull.INSTANCE)
             return null;
 
         switch (type.getSqlTypeName()) {
