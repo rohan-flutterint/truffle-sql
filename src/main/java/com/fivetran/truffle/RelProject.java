@@ -10,6 +10,9 @@ import org.apache.calcite.rex.RexNode;
 
 import java.util.List;
 
+/**
+ * The expression part of a SELECT query
+ */
 public class RelProject extends RowTransform {
     @Children
     private final ExprBase[] select;

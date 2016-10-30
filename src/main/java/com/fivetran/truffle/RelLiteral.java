@@ -10,7 +10,10 @@ import org.apache.calcite.rex.RexLiteral;
 
 import java.util.List;
 
-class RelLiteral extends RowSource {
+/**
+ * A VALUES literal
+ */
+public class RelLiteral extends RowSource {
     private final LogicalValues values;
     private final FrameDescriptor resultType;
 

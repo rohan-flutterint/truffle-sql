@@ -101,7 +101,7 @@ public class Types {
             case VARBINARY:
                 throw new UnsupportedOperationException();
             case NULL:
-                return NullValue.INSTANCE;
+                return SqlNull.INSTANCE;
             case ANY:
             case SYMBOL:
             case MULTISET:

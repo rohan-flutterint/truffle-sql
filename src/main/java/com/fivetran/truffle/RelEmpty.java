@@ -5,6 +5,10 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
+/**
+ * A placeholder when the FROM clause is absent.
+ * Generates 1 row with nothing in it.
+ */
 public class RelEmpty extends RowSource {
 
     private final FrameDescriptor resultType;

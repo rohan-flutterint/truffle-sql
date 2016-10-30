@@ -31,7 +31,7 @@ import java.util.Objects;
  * }
  * }
  */
-public class CompileRel implements RelShuttle {
+class CompileRel implements RelShuttle {
     // TODO actually compile
 
     // Used to sneakily return the result to

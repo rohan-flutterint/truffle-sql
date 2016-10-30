@@ -18,6 +18,7 @@ class TruffleTable extends AbstractTable implements TranslatableTable {
 
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
+        // TODO actually get types from somewhere
         return types.createStructType(TruffleMeta.TestRow.class);
     }
 

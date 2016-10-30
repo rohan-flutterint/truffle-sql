@@ -9,7 +9,7 @@ import com.oracle.truffle.api.source.Source;
 
 import java.io.IOException;
 
-@TruffleLanguage.Registration(name = "SL", version = "0.1", mimeType = TruffleSqlLanguage.MIME_TYPE)
+@TruffleLanguage.Registration(name = "SQL", version = "0.1", mimeType = TruffleSqlLanguage.MIME_TYPE)
 public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
     public static final String MIME_TYPE = "application/x-sql";
 
