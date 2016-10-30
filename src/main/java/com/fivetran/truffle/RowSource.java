@@ -5,7 +5,8 @@ import com.oracle.truffle.api.source.SourceSection;
 
 /**
  * Root expression that receives nothing and sends rows somewhere.
- * Includes literals, tables.
+ *
+ * Could be a literal, or a file somewhere.
  */
 public abstract class RowSource extends RootNode {
     /**

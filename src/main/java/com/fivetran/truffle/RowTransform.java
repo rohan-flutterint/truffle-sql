@@ -4,7 +4,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * A SQL expression that transforms 1 row of data.
+ * A SQL expression that transforms 1 row of data at a time.
  *
  * For example [x+y, x*y] in SELECT x+y, x*y FROM row_source
  */
