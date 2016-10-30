@@ -4,7 +4,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.rel.logical.LogicalValues;
 import org.apache.calcite.rex.RexLiteral;
@@ -15,7 +14,7 @@ class RelLiteral extends RowSource {
     private final LogicalValues values;
     private final FrameDescriptor resultType;
 
-    public RelLiteral(SourceSection source, LogicalValues values, RootNode then) {
+    public RelLiteral(SourceSection source, LogicalValues values, RowSink then) {
         super(source, then);
 
         this.values = values;

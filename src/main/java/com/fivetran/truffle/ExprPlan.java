@@ -1,8 +1,6 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import org.apache.calcite.rel.RelRoot;
 
 /**
@@ -11,9 +9,9 @@ import org.apache.calcite.rel.RelRoot;
  */
 public class ExprPlan extends Node {
     public final RelRoot plan;
-    public final RootNode then;
+    public final RowSink then;
 
-    public ExprPlan(RelRoot plan, RootNode then) {
+    public ExprPlan(RelRoot plan, RowSink then) {
         this.plan = plan;
         this.then = then;
     }

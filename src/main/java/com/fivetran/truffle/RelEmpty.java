@@ -1,17 +1,15 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-class RelEmpty extends RowSource {
+public class RelEmpty extends RowSource {
 
     private final FrameDescriptor resultType;
 
-    public RelEmpty(SourceSection source, RootNode then) {
+    public RelEmpty(SourceSection source, RowTransform then) {
         super(source, then);
 
         this.resultType = new FrameDescriptor();

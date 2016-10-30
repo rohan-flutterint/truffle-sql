@@ -28,8 +28,8 @@ public class SqlDriverTest {
         );
 
         assertThat(results, containsInAnyOrder(new Object[][] {
-                {1, "one"},
-                {2, "two"}
+                {1L, "one"},
+                {2L, "two"}
         }));
     }
 
@@ -38,7 +38,16 @@ public class SqlDriverTest {
         List<Object[]> results = query("SELECT 1, 'one'");
 
         assertThat(results, contains(new Object[][] {
-                {1, "one"}
+                {1L, "one"}
+        }));
+    }
+
+    @Test
+    public void add() throws SQLException {
+        List<Object[]> results = query("SELECT 1 + 10 + 11 AS result_value");
+
+        assertThat(results, contains(new Object[][] {
+                {22L}
         }));
     }
 

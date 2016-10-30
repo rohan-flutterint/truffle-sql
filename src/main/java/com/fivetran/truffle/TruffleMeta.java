@@ -5,9 +5,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
@@ -174,8 +172,7 @@ class TruffleMeta extends MetaImpl {
         // Create a program that sticks query results in a list
         List<Object[]> results = new ArrayList<>();
         FrameDescriptor resultFrame = com.fivetran.truffle.Types.frame(plan.validatedRowType);
-        SourceSection outputSource = SourceSection.createUnavailable("SQL query", "Output");
-        RootNode then = new RootNode(TruffleSqlLanguage.class, outputSource, resultFrame) {
+        RowSink then = new RowSink(resultFrame) {
             @Override
             public Object execute(VirtualFrame frame) {
                 List<? extends FrameSlot> slots = resultFrame.getSlots();
@@ -306,6 +303,8 @@ class TruffleMeta extends MetaImpl {
                                            RelDataType type,
                                            RelDataType fieldType,
                                            List<String> origins) {
+        type = com.fivetran.truffle.Types.simplify(type);
+
         final ColumnMetaData.AvaticaType avaticaType =
                 avaticaType(typeFactory, type, fieldType);
         return new ColumnMetaData(

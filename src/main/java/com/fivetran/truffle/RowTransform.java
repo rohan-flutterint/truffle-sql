@@ -1,10 +1,6 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
@@ -12,31 +8,17 @@ import com.oracle.truffle.api.source.SourceSection;
  *
  * For example [x+y, x*y] in SELECT x+y, x*y FROM row_source
  */
-abstract class RowTransform extends RootNode {
+public abstract class RowTransform extends RowSink {
+
     /**
      * What to do with each row this produces
      */
-    final RootNode then;
+    @Child
+    protected RowSink then;
 
-    protected RowTransform(SourceSection source, FrameDescriptor sourceFrame, RootNode then) {
-        super(TruffleSqlLanguage.class, source, sourceFrame);
+    protected RowTransform(SourceSection source, FrameDescriptor sourceFrame, RowSink then) {
+        super(sourceFrame);
 
         this.then = then;
     }
-
-    /**
-     * Describes the rows this row transform sends to then.
-     * Analogous to getFrameDescriptor(), which describes the rows this transform receives.
-     *
-     * For example, the transform [x+y, x*y, x/y] might have
-     *
-     * getFrameDescriptor() = [int, double]
-     *
-     * and
-     *
-     * getResultFrameDescriptor() = [double, double, double]
-     *
-     * if x is int and y is double.
-     */
-    abstract FrameDescriptor getResultFrameDescriptor();
 }

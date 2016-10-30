@@ -5,11 +5,12 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.sql.type.BasicSqlType;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.NlsString;
 
-import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.List;
@@ -33,16 +34,14 @@ public class Types {
             case BOOLEAN:
                 return FrameSlotKind.Boolean;
             case TINYINT:
-                return FrameSlotKind.Byte;
             case SMALLINT:
             case INTEGER:
-                return FrameSlotKind.Int;
             case BIGINT:
                 return FrameSlotKind.Long;
             case FLOAT:
-                return FrameSlotKind.Float;
             case REAL:
             case DOUBLE:
+            case DECIMAL:
                 return FrameSlotKind.Double;
             default:
                 return FrameSlotKind.Object;
@@ -57,17 +56,12 @@ public class Types {
                 return (Boolean) value;
             case TINYINT:
             case SMALLINT:
-                return ((Number) value).shortValue();
             case INTEGER:
-                return ((Number) value).intValue();
             case BIGINT:
                 return ((Number) value).longValue();
             case DECIMAL:
-                return ((BigDecimal) value);
             case FLOAT:
-                return ((Number) value).floatValue();
             case REAL:
-                return ((Number) value).doubleValue();
             case DOUBLE:
                 return ((Number) value).doubleValue();
             case DATE:
@@ -112,6 +106,27 @@ public class Types {
             case DYNAMIC_STAR:
             default:
                 throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Simplify calcite's type system into the types we actually implement at runtime.
+     */
+    public static RelDataType simplify(RelDataType type) {
+        switch (kind(type.getSqlTypeName())) {
+            case Long:
+            case Int:
+                return new BasicSqlType(RelDataTypeSystem.DEFAULT, SqlTypeName.BIGINT);
+            case Double:
+            case Float:
+                return new BasicSqlType(RelDataTypeSystem.DEFAULT, SqlTypeName.DOUBLE);
+            case Boolean:
+                return new BasicSqlType(RelDataTypeSystem.DEFAULT, SqlTypeName.BOOLEAN);
+            case Byte:
+            case Object:
+            case Illegal:
+            default:
+                return type;
         }
     }
 }

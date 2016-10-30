@@ -1,6 +1,5 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttle;
@@ -37,9 +36,9 @@ public class CompileRel implements RelShuttle {
 
     // Used to sneakily return the result to
     private RowSource compiled;
-    private final RootNode then;
+    private final RowSink then;
 
-    public static RowSource compile(RelNode rel, RootNode then) {
+    public static RowSource compile(RelNode rel, RowSink then) {
         CompileRel compiler = new CompileRel(then);
 
         rel.accept(compiler);
@@ -50,7 +49,7 @@ public class CompileRel implements RelShuttle {
     }
 
     // Force using compile
-    private CompileRel(RootNode then) {
+    private CompileRel(RowSink then) {
         this.then = then;
     }
 

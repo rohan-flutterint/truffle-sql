@@ -1,22 +1,34 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
  * Base of all SQL expressions.
  * The current row is in the FrameSlot's in VirtualFrame.
  */
-abstract class ExprBase {
+@TypeSystemReference(SqlTypes.class)
+@NodeInfo(description = "The abstract base node for all expressions")
+public abstract class ExprBase extends Node {
     /**
      * @param frame One row of data. Each FrameSlot corresponds to one column.
      * @return Result of evaluating the expression
      */
-    abstract Object execute(VirtualFrame frame);
+    public abstract Object executeGeneric(VirtualFrame frame);
 
-    /**
-     * How the result of this expression should be represented in the VirtualFrame we create
-     * and pass to the next stage of query execution
-     */
-    abstract FrameSlotKind kind();
+    public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
+        return SqlTypesGen.expectBoolean(executeGeneric(frame));
+    }
+
+    public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
+        return SqlTypesGen.expectLong(executeGeneric(frame));
+    }
+
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return SqlTypesGen.expectDouble(executeGeneric(frame));
+    }
+
 }
