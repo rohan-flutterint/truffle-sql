@@ -6,6 +6,7 @@ import org.apache.calcite.rel.RelShuttle;
 import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.*;
+import org.apache.calcite.rel.type.RelDataType;
 
 import java.util.Objects;
 
@@ -55,7 +56,15 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(TableScan scan) {
-        throw new UnsupportedOperationException("TableScan should be wrapped in LogicalProject");
+        if (scan instanceof MockTableScan) {
+            MockTableScan mock = (MockTableScan) scan;
+            RelDataType type = mock.getRowType();
+
+            compiled = new RelMock(type, mock.type, mock.rows, then);
+
+            return scan;
+        }
+        else throw new UnsupportedOperationException("Don't know what to do with " + scan.getClass());
     }
 
     @Override
@@ -84,8 +93,11 @@ class CompileRel implements RelShuttle {
 
         if (project.getInputs().isEmpty())
             compiled = new RelEmpty(select);
-        else
-            compiled = compile(project.getInputs().get(0), select);
+        else {
+            RelNode input = project.getInputs().get(0);
+
+            compiled = compile(input, select);
+        }
 
         return project;
     }

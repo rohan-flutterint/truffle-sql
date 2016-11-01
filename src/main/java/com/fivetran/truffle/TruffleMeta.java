@@ -9,6 +9,7 @@ import com.oracle.truffle.api.source.Source;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
+import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptCluster;
@@ -19,9 +20,6 @@ import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
-import org.apache.calcite.schema.Table;
-import org.apache.calcite.schema.impl.AbstractSchema;
-import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -42,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class TruffleMeta extends MetaImpl {
@@ -60,7 +59,8 @@ class TruffleMeta extends MetaImpl {
 
     private SqlNode parse(String sql) {
         try {
-            SqlParser parser = SqlParser.create(sql, SqlParser.Config.DEFAULT);
+            SqlParser.Config config = SqlParser.configBuilder().setLex(Lex.JAVA).build();
+            SqlParser parser = SqlParser.create(sql, config);
 
             return parser.parseStmt();
         } catch (SqlParseException e) {
@@ -115,27 +115,23 @@ class TruffleMeta extends MetaImpl {
         };
     }
 
+    /**
+     * Exposed for mocking during tests
+     */
+    static Function<TruffleMeta, Prepare.CatalogReader> catalogReader = TruffleMeta::doCatalogReader;
+
     private Prepare.CatalogReader catalogReader() {
-        // TODO actual metadata
+        return catalogReader.apply(this);
+    }
 
+    private Prepare.CatalogReader doCatalogReader() {
         JavaTypeFactory types = typeFactory();
-        AbstractTable testTable = new TruffleTable(types);
-        AbstractSchema testSchema = new AbstractSchema() {
-            @Override
-            protected Map<String, Table> getTableMap() {
-                return Collections.singletonMap(
-                        "TEST_TABLE", testTable
-                );
-            }
-        };
         CalciteSchema rootSchema = CalciteSchema.createRootSchema(false);
-
-        rootSchema.add("TEST_SCHEMA", testSchema);
 
         return new CalciteCatalogReader(rootSchema, true, Collections.emptyList(), types);
     }
 
-    private JavaTypeFactory typeFactory() {
+    public static JavaTypeFactory typeFactory() {
         return new JavaTypeFactoryImpl();
     }
 
@@ -437,10 +433,4 @@ class TruffleMeta extends MetaImpl {
                 ? 0
                 : type.getPrecision();
     }
-
-    static class TestRow {
-        public int id;
-        public String attr;
-    }
-
 }

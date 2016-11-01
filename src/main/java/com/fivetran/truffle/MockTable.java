@@ -3,27 +3,29 @@ package com.fivetran.truffle;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.LogicalTableScan;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.TranslatableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 
-class TruffleTable extends AbstractTable implements TranslatableTable {
-    private final JavaTypeFactory types;
+class MockTable extends AbstractTable implements TranslatableTable {
+    private final Class<?> type;
+    private final Object[] rows;
 
-    public TruffleTable(JavaTypeFactory types) {
-        this.types = types;
+    MockTable(Class<?> type, Object[] rows) {
+        this.type = type;
+        this.rows = rows;
     }
 
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-        // TODO actually get types from somewhere
-        return types.createStructType(TruffleMeta.TestRow.class);
+        JavaTypeFactory javaTypes = (JavaTypeFactory) typeFactory;
+
+        return javaTypes.createStructType(type);
     }
 
     @Override
     public RelNode toRel(RelOptTable.ToRelContext context, RelOptTable table) {
-        return new LogicalTableScan(context.getCluster(), context.getCluster().traitSet(), table);
+        return new MockTableScan(context.getCluster(), context.getCluster().traitSet(), table, type, rows);
     }
 }

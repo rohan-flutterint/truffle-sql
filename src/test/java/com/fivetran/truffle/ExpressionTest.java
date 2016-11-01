@@ -1,23 +1,20 @@
 package com.fivetran.truffle;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
-public class SqlDriverTest {
-    @BeforeClass
-    public static void registerDriver() {
-        // Causes driver to register itself
-        TruffleDriver.load();
-    }
-
+/**
+ * Tests SQL expressions such as literals, binary operators.
+ */
+public class ExpressionTest extends SqlTestBase {
     @Test
     public void withExpression() throws SQLException {
         List<Object[]> results = query(
@@ -131,27 +128,5 @@ public class SqlDriverTest {
         assertThat(results, contains(new Object[][] {
                 {false, false}
         }));
-    }
-
-    private List<Object[]> query(String sql) throws SQLException {
-        List<Object[]> results = new ArrayList<>();
-
-        try (Connection conn = DriverManager.getConnection("jdbc:truffle://localhost:80")) {
-            ResultSet r = conn.createStatement().executeQuery(sql);
-            ResultSetMetaData types = r.getMetaData();
-            int n = types.getColumnCount();
-
-            while (r.next()) {
-                Object[] row = new Object[n];
-
-                for (int column = 0; column < n; column++) {
-                    row[column] = r.getObject(column + 1);
-                }
-
-                results.add(row);
-            }
-
-        }
-        return results;
     }
 }
