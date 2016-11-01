@@ -45,12 +45,8 @@ import java.lang.reflect.Type;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class TruffleMeta extends MetaImpl {
@@ -121,6 +117,7 @@ class TruffleMeta extends MetaImpl {
         SqlStdOperatorTable ops = SqlStdOperatorTable.instance();
 
         ops.register(echoMacro());
+        ops.register(mockMacro());
 
         return new SqlValidatorImpl(ops, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
             // No overrides
@@ -128,8 +125,7 @@ class TruffleMeta extends MetaImpl {
     }
 
     private SqlUserDefinedTableMacro echoMacro() {
-        SqlIdentifier name = new SqlIdentifier("echo", SqlParserPos.ZERO);
-        TableMacro function = new TableMacro() {
+        return tableMacro("echo", new TableMacro() {
             @Override
             public TranslatableTable apply(List<Object> arguments) {
                 Object row = new Object() {
@@ -145,12 +141,29 @@ class TruffleMeta extends MetaImpl {
                         simpleMacroParameter("message", String.class)
                 );
             }
-        };
-        return tableMacro(name, function);
+        });
+    }
+
+    public static Object[] mockRows;
+
+    private SqlUserDefinedTableMacro mockMacro() {
+        return tableMacro("mock", new TableMacro() {
+            @Override
+            public TranslatableTable apply(List<Object> arguments) {
+                Objects.requireNonNull(mockRows, "You need to set TruffleMeta.mockRows before calling TABLE(mock())");
+
+                return new MockTable(mockRows[0].getClass(), mockRows);
+            }
+
+            @Override
+            public List<FunctionParameter> getParameters() {
+                return Collections.emptyList();
+            }
+        });
     }
 
     @NotNull
-    FunctionParameter simpleMacroParameter(final String name, Class<?> type) {
+    private FunctionParameter simpleMacroParameter(final String name, Class<?> type) {
         RelDataType relType = typeFactory().createJavaType(type);
         return new FunctionParameter() {
             @Override
@@ -178,7 +191,7 @@ class TruffleMeta extends MetaImpl {
     /**
      * Based on {@link CalciteCatalogReader#toOp(SqlIdentifier, org.apache.calcite.schema.Function)}
      */
-    private SqlUserDefinedTableMacro tableMacro(SqlIdentifier name, TableMacro function) {
+    private SqlUserDefinedTableMacro tableMacro(String name, TableMacro function) {
         JavaTypeFactory typeFactory = typeFactory();
         List<RelDataType> argTypes = new ArrayList<>();
         List<SqlTypeFamily> typeFamilies = new ArrayList<>();
@@ -195,7 +208,7 @@ class TruffleMeta extends MetaImpl {
         FamilyOperandTypeChecker typeChecker = OperandTypes.family(typeFamilies, optional);
 
         return new SqlUserDefinedTableMacro(
-                name,
+                new SqlIdentifier(name, SqlParserPos.ZERO),
                 ReturnTypes.CURSOR,
                 InferTypes.explicit(argTypes),
                 typeChecker,
@@ -204,16 +217,7 @@ class TruffleMeta extends MetaImpl {
         );
     }
 
-    /**
-     * Exposed for mocking during tests
-     */
-    static Function<TruffleMeta, Prepare.CatalogReader> catalogReader = TruffleMeta::doCatalogReader;
-
     private Prepare.CatalogReader catalogReader() {
-        return catalogReader.apply(this);
-    }
-
-    private Prepare.CatalogReader doCatalogReader() {
         JavaTypeFactory types = typeFactory();
         CalciteSchema rootSchema = CalciteSchema.createRootSchema(false);
 

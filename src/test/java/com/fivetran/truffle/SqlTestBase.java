@@ -1,18 +1,12 @@
 package com.fivetran.truffle;
 
-import org.apache.calcite.adapter.java.JavaTypeFactory;
-import org.apache.calcite.jdbc.CalciteSchema;
-import org.apache.calcite.prepare.CalciteCatalogReader;
-import org.apache.calcite.prepare.Prepare;
-import org.apache.calcite.schema.Table;
-import org.apache.calcite.schema.impl.AbstractSchema;
-import org.apache.calcite.schema.impl.AbstractTable;
 import org.intellij.lang.annotations.Language;
+import org.junit.After;
 import org.junit.BeforeClass;
 
 import java.sql.*;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SqlTestBase {
     @BeforeClass
@@ -21,40 +15,9 @@ public class SqlTestBase {
         TruffleDriver.load();
     }
 
-
-    @FunctionalInterface
-    protected interface RunTest {
-        void run() throws SQLException;
-    }
-
-    protected void withFake(Object[] rows, RunTest test) throws SQLException {
-        Function<TruffleMeta, Prepare.CatalogReader> realCatalog = TruffleMeta.catalogReader;
-
-        try {
-            TruffleMeta.catalogReader = any -> {
-                JavaTypeFactory types = TruffleMeta.typeFactory();
-                AbstractTable mockTable = new MockTable(rows[0].getClass(), rows);
-                AbstractSchema mockSchema = new AbstractSchema() {
-                    @Override
-                    protected Map<String, Table> getTableMap() {
-                        return Collections.singletonMap(
-                                "test_table", mockTable
-                        );
-                    }
-                };
-                CalciteSchema rootSchema = CalciteSchema.createRootSchema(false);
-
-                rootSchema.add("test_schema", mockSchema);
-
-                return new CalciteCatalogReader(rootSchema, true, Collections.emptyList(), types);
-            };
-
-            test.run();
-        } finally {
-            Objects.requireNonNull(realCatalog);
-
-            TruffleMeta.catalogReader = realCatalog;
-        }
+    @After
+    public void resetMockRows() {
+        TruffleMeta.mockRows = null;
     }
 
     protected static List<Object[]> query(@Language("SQL") String sql) throws SQLException {

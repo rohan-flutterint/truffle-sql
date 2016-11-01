@@ -14,54 +14,45 @@ import static org.junit.Assert.assertThat;
 public class QueryTest extends SqlTestBase {
 
     @Test
-    public void selectStar() throws SQLException {
-        Object[] rows = {
+    public void echoMacro() throws SQLException {
+        TruffleMeta.mockRows = new Object[]{
                 new IdName(1, "one"),
                 new IdName(2, "two")
         };
 
-        withFake(rows, () -> {
-            List<Object[]> results = query("SELECT * FROM test_schema.test_table");
+        List<Object[]> results = query("SELECT * FROM TABLE(echo('Hello world!'))");
 
-            assertThat(results, containsInAnyOrder(new Object[][] {
-                    {1L, "one"},
-                    {2L, "two"}
-            }));
-        });
-    }
-
-    @Test
-    public void selectColumn() throws SQLException {
-        Object[] rows = {
-                new IdName(1, "one"),
-                new IdName(2, "two")
-        };
-
-        withFake(rows, () -> {
-            List<Object[]> results = query("SELECT id FROM test_schema.test_table");
-
-            assertThat(results, containsInAnyOrder(new Object[][] {
-                    {1L},
-                    {2L}
-            }));
-        });
-
-        withFake(rows, () -> {
-            List<Object[]> results = query("SELECT name FROM test_schema.test_table");
-
-            assertThat(results, containsInAnyOrder(new Object[][] {
-                    {"one"},
-                    {"two"}
-            }));
-        });
-    }
-
-    @Test
-    public void tableMacro() throws SQLException {
-        List<Object[]> rows = query("SELECT * FROM TABLE(echo('Hello world!'))");
-
-        assertThat(rows, containsInAnyOrder(new Object[][] {
+        assertThat(results, containsInAnyOrder(new Object[][] {
                 {"Hello world!"}
+        }));
+    }
+
+    @Test
+    public void mockMacro() throws SQLException {
+        TruffleMeta.mockRows = new Object[]{
+                new IdName(1, "one"),
+                new IdName(2, "two")
+        };
+
+        List<Object[]> results = query("SELECT * FROM TABLE(mock())");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {1L, "one"},
+                {2L, "two"}
+        }));
+
+        results = query("SELECT id FROM TABLE(mock())");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {1L},
+                {2L}
+        }));
+
+        results = query("SELECT name FROM TABLE(mock())");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {"one"},
+                {"two"}
         }));
     }
 
