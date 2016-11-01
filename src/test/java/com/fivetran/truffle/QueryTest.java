@@ -56,6 +56,15 @@ public class QueryTest extends SqlTestBase {
         });
     }
 
+    @Test
+    public void tableMacro() throws SQLException {
+        List<Object[]> rows = query("SELECT * FROM TABLE(echo('Hello world!'))");
+
+        assertThat(rows, containsInAnyOrder(new Object[][] {
+                {"Hello world!"}
+        }));
+    }
+
     private static class IdName {
         public final long id;
         public final String name;

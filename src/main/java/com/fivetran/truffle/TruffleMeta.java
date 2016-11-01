@@ -1,5 +1,7 @@
 package com.fivetran.truffle;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -18,18 +20,26 @@ import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.schema.FunctionParameter;
+import org.apache.calcite.schema.TableMacro;
+import org.apache.calcite.schema.TranslatableTable;
+import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
-import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.type.*;
 import org.apache.calcite.sql.validate.SqlConformance;
+import org.apache.calcite.sql.validate.SqlUserDefinedTableMacro;
 import org.apache.calcite.sql.validate.SqlValidatorImpl;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.util.Util;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.sql.DatabaseMetaData;
@@ -110,9 +120,88 @@ class TruffleMeta extends MetaImpl {
         // .instance() initializes SqlStdOperatorTable by scanning its own public static fields
         SqlStdOperatorTable ops = SqlStdOperatorTable.instance();
 
+        ops.register(echoMacro());
+
         return new SqlValidatorImpl(ops, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
             // No overrides
         };
+    }
+
+    private SqlUserDefinedTableMacro echoMacro() {
+        SqlIdentifier name = new SqlIdentifier("echo", SqlParserPos.ZERO);
+        TableMacro function = new TableMacro() {
+            @Override
+            public TranslatableTable apply(List<Object> arguments) {
+                Object row = new Object() {
+                    public String message = (String) arguments.get(0);
+                };
+
+                return new MockTable(row.getClass(), new Object[] { row });
+            }
+
+            @Override
+            public List<FunctionParameter> getParameters() {
+                return Collections.singletonList(
+                        simpleMacroParameter("message", String.class)
+                );
+            }
+        };
+        return tableMacro(name, function);
+    }
+
+    @NotNull
+    FunctionParameter simpleMacroParameter(final String name, Class<?> type) {
+        RelDataType relType = typeFactory().createJavaType(type);
+        return new FunctionParameter() {
+            @Override
+            public int getOrdinal() {
+                return 0;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public RelDataType getType(RelDataTypeFactory typeFactory) {
+                return relType;
+            }
+
+            @Override
+            public boolean isOptional() {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * Based on {@link CalciteCatalogReader#toOp(SqlIdentifier, org.apache.calcite.schema.Function)}
+     */
+    private SqlUserDefinedTableMacro tableMacro(SqlIdentifier name, TableMacro function) {
+        JavaTypeFactory typeFactory = typeFactory();
+        List<RelDataType> argTypes = new ArrayList<>();
+        List<SqlTypeFamily> typeFamilies = new ArrayList<>();
+
+        for (FunctionParameter o : function.getParameters()) {
+            RelDataType type = o.getType(typeFactory);
+
+            argTypes.add(type);
+            typeFamilies.add(Util.first(type.getSqlTypeName().getFamily(), SqlTypeFamily.ANY));
+        }
+
+        List<RelDataType> paramTypes = Lists.transform(argTypes, typeFactory::toSql);
+        Predicate<Integer> optional = input -> function.getParameters().get(input).isOptional();
+        FamilyOperandTypeChecker typeChecker = OperandTypes.family(typeFamilies, optional);
+
+        return new SqlUserDefinedTableMacro(
+                name,
+                ReturnTypes.CURSOR,
+                InferTypes.explicit(argTypes),
+                typeChecker,
+                paramTypes,
+                function
+        );
     }
 
     /**
