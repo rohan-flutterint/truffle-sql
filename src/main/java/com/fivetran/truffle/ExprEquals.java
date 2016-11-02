@@ -26,8 +26,13 @@ public abstract class ExprEquals extends ExprBinary {
     }
 
     @Specialization
-    protected boolean eq(SqlNull left, SqlNull right) {
-        return false;
+    protected SqlNull eq(SqlNull left, Object right) {
+        return SqlNull.INSTANCE;
+    }
+
+    @Specialization
+    protected SqlNull eq(Object left, SqlNull right) {
+        return SqlNull.INSTANCE;
     }
 
     @Specialization

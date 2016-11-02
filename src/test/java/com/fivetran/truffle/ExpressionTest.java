@@ -7,8 +7,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -31,7 +30,7 @@ public class ExpressionTest extends SqlTestBase {
     }
 
     @Test
-    public void nullValue() throws SQLException {
+    public void withClause() throws SQLException {
         List<Object[]> results = query(
                 "WITH test_values (x, y) AS (" +
                 "  VALUES (1, 10), (2, cast(null as INTEGER)) " +
@@ -56,8 +55,15 @@ public class ExpressionTest extends SqlTestBase {
     }
 
     @Test
+    public void forgiveNulls() throws SQLException {
+        List<Object[]> results = query("SELECT 1 - null, 1 + null, null * 1, null / 1, true AND null, false OR null, 1 = null, 1 <> null");
+
+        assertThat(results, not(empty()));
+    }
+
+    @Test
     public void add() throws SQLException {
-        List<Object[]> results = query("SELECT 1 + 10 + 11, 1 + cast(null AS INTEGER)");
+        List<Object[]> results = query("SELECT 1 + 10 + 11, 1 + null");
 
         assertThat(results, contains(new Object[][] {
                 {22L, null}
@@ -66,7 +72,7 @@ public class ExpressionTest extends SqlTestBase {
 
     @Test
     public void subtract() throws SQLException {
-        List<Object[]> results = query("SELECT 10 - 2 - 1, 1 - cast(null AS INTEGER)");
+        List<Object[]> results = query("SELECT 10 - 2 - 1, 1 - null");
 
         assertThat(results, contains(new Object[][] {
                 {7L, null}
@@ -75,7 +81,7 @@ public class ExpressionTest extends SqlTestBase {
 
     @Test
     public void multiply() throws SQLException {
-        List<Object[]> results = query("SELECT 10 * 2, 1 * cast(null AS INTEGER)");
+        List<Object[]> results = query("SELECT 10 * 2, 1 * null");
 
         assertThat(results, contains(new Object[][] {
                 {20L, null}
@@ -84,7 +90,7 @@ public class ExpressionTest extends SqlTestBase {
 
     @Test
     public void divide() throws SQLException {
-        List<Object[]> results = query("SELECT 10 / 2, cast(null AS INTEGER) / 10");
+        List<Object[]> results = query("SELECT 10 / 2, null / 10");
 
         assertThat(results, contains(new Object[][] {
                 {5L, null}
@@ -93,7 +99,7 @@ public class ExpressionTest extends SqlTestBase {
 
     @Test
     public void and() throws SQLException {
-        List<Object[]> results = query("SELECT true AND false, true AND cast(null AS BOOLEAN)");
+        List<Object[]> results = query("SELECT true AND false, true AND null");
 
         assertThat(results, contains(new Object[][] {
                 {false, null}
@@ -102,7 +108,7 @@ public class ExpressionTest extends SqlTestBase {
 
     @Test
     public void or() throws SQLException {
-        List<Object[]> results = query("SELECT true OR false, true OR cast(null AS BOOLEAN)");
+        List<Object[]> results = query("SELECT true OR false, true OR null");
 
         assertThat(results, contains(new Object[][] {
                 {true, true}
@@ -123,10 +129,31 @@ public class ExpressionTest extends SqlTestBase {
                 {false, false, false}
         }));
 
-        results = query("SELECT 1 = cast(null AS INTEGER), cast(null AS INTEGER) = cast(null AS INTEGER)");
+        results = query("SELECT 1 = null, cast(null AS INTEGER) = null");
 
         assertThat(results, contains(new Object[][] {
-                {false, false}
+                {null, null}
+        }));
+    }
+
+    @Test
+    public void notEquals() throws SQLException {
+        List<Object[]> results = query("SELECT 1 <> 1, 1.0 <> 1.0, 'one' <> 'one'");
+
+        assertThat(results, contains(new Object[][] {
+                {false, false, false}
+        }));
+
+        results = query("SELECT 1 <> 2, 1.0 <> 2.0, 'one' <> 'two'");
+
+        assertThat(results, contains(new Object[][] {
+                {true, true, true}
+        }));
+
+        results = query("SELECT 1 <> null, cast(null AS INTEGER) <> null");
+
+        assertThat(results, contains(new Object[][] {
+                {null, null}
         }));
     }
 }

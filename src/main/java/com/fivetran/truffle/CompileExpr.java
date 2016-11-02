@@ -80,7 +80,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case EQUALS:
                 return binary(call, ExprEqualsNodeGen::create);
             case NOT_EQUALS:
-                throw new UnsupportedOperationException();
+                return binary(call, ExprNotEqualsNodeGen::create);
             case OR:
                 return binary(call, ExprOrNodeGen::create);
             case AND:
