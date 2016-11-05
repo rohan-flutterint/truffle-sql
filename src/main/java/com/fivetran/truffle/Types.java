@@ -74,9 +74,14 @@ public class Types {
         return internal(value, type);
     }
 
+    /**
+     * Coerce value from any reasonable representation to Truffle's internal representation of type.
+     * Not fast! Suitable for things like literals, mocks that are executed infrequently.
+     */
     static Object internal(Object value, RelDataType type) {
         if (value == null)
             return SqlNull.INSTANCE;
+
         switch (type.getSqlTypeName()) {
             case BOOLEAN:
                 return (Boolean) value;
@@ -112,7 +117,10 @@ public class Types {
                 throw new UnsupportedOperationException();
             case CHAR:
             case VARCHAR:
-                return ((NlsString) value).getValue();
+                if (value instanceof NlsString)
+                    return ((NlsString) value).getValue();
+                else
+                    return (String) value;
             case BINARY:
             case VARBINARY:
                 throw new UnsupportedOperationException();
