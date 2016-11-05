@@ -69,8 +69,15 @@ public class Types {
             return SqlNull.INSTANCE;
 
         Object value = literal.getValue();
+        RelDataType type = literal.getType();
 
-        switch (literal.getType().getSqlTypeName()) {
+        return internal(value, type);
+    }
+
+    static Object internal(Object value, RelDataType type) {
+        if (value == null)
+            return SqlNull.INSTANCE;
+        switch (type.getSqlTypeName()) {
             case BOOLEAN:
                 return (Boolean) value;
             case TINYINT:

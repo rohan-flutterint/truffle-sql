@@ -288,7 +288,11 @@ class TruffleMeta extends MetaImpl {
                     FrameSlot slot = slots.get(i);
 
                     try {
-                        values[i] = frame.getObject(slot);
+                        Object truffleValue = frame.getObject(slot);
+                        RelDataType type = plan.validatedRowType.getFieldList().get(i).getType();
+                        Object resultSetValue = com.fivetran.truffle.Types.resultSet(truffleValue, type);
+
+                        values[i] = resultSetValue;
                     } catch (FrameSlotTypeException e) {
                         throw new RuntimeException(e);
                     }
@@ -364,17 +368,6 @@ class TruffleMeta extends MetaImpl {
                 .stream()
                 .skip(offset)
                 .limit(fetchMaxRowCount)
-                .map(row -> {
-                    Object[] after = new Object[row.length];
-
-                    for (int column = 0; column < row.length; column++) {
-                        RelDataType type = running.type.getFieldList().get(column).getType();
-
-                        after[column] = com.fivetran.truffle.Types.resultSet(row[column], type);
-                    }
-
-                    return after;
-                })
                 .collect(Collectors.toList());
 
         return new Frame(offset, slice.isEmpty(), slice);

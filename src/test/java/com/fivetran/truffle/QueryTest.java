@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -53,6 +54,65 @@ public class QueryTest extends SqlTestBase {
         assertThat(results, containsInAnyOrder(new Object[][] {
                 {"one"},
                 {"two"}
+        }));
+    }
+
+    public static class IdNested {
+        public final int id;
+        public final Nested nested;
+
+        public IdNested(int id, int nestedX, int nestedY) {
+            this.id = id;
+            this.nested = new Nested(nestedX, nestedY);
+        }
+
+        public IdNested(int id) {
+            this.id = id;
+            this.nested = null;
+        }
+    }
+
+    public static class Nested {
+        public final int x, y;
+
+        public Nested(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    @Test
+    public void nestedType() throws SQLException {
+        TruffleMeta.mockRows = new Object[]{
+                new IdNested(1, 2, 3),
+                new IdNested(4, 5, 6),
+                new IdNested(10)
+        };
+
+        List<Object[]> results = query("SELECT m.id, m.nested.x, m.nested.y FROM TABLE(mock()) AS m");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {1L, 2L, 3L},
+                {4L, 5L, 6L},
+                {10L, null, null}
+        }));
+    }
+
+    @Test
+    @Ignore
+    public void unqualifiedNestedType() throws SQLException {
+        TruffleMeta.mockRows = new Object[]{
+                new IdNested(1, 2, 3),
+                new IdNested(4, 5, 6),
+                new IdNested(10)
+        };
+
+        List<Object[]> results = query("SELECT id, nested.x, nested.y FROM TABLE(mock())");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {1L, 2L, 3L},
+                {4L, 5L, 6L},
+                {10L, null, null}
         }));
     }
 

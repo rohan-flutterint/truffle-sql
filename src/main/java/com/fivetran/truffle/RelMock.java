@@ -4,9 +4,12 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.object.Shape;
 import org.apache.calcite.rel.type.RelDataType;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class RelMock extends RowSource {
@@ -35,9 +38,11 @@ public class RelMock extends RowSource {
             for (Object row : rows) {
                 for (int column = 0; column < fields.length; column++) {
                     FrameSlot slot = slots.get(column);
-                    Object value = fields[column].get(row);
+                    Object rawValue = fields[column].get(row);
+                    RelDataType type = relType.getFieldList().get(column).getType();
+                    Object truffleValue = coerce(rawValue, type);
 
-                    frame.setObject(slot, value);
+                    frame.setObject(slot, truffleValue);
                 }
 
                 then.executeVoid(frame);
@@ -45,5 +50,47 @@ public class RelMock extends RowSource {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Object coerce(Object value, RelDataType type) {
+        if (value == null)
+            return SqlNull.INSTANCE;
+
+        switch (type.getSqlTypeName()) {
+            case ROW:
+                return truffleObject(value, type);
+            default:
+                return Types.internal(value, type);
+        }
+    }
+
+    /**
+     * Convert a Java object to a TruffleObject using reflection.
+     * This is very slow! This should only be used for mocks.
+     */
+    private TruffleObject truffleObject(Object value, RelDataType type) {
+        Shape shape = TruffleSqlContext.LAYOUT.createShape(SqlObjectType.INSTANCE);
+        Class<?> clazz = value.getClass();
+        Field[] fields = clazz.getFields();
+        Object[] fieldValues = new Object[fields.length];
+
+        for (int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            RelDataType fieldType = type.getFieldList().get(i).getType();
+
+            assert !Modifier.isStatic(field.getModifiers()) : "Mock records are not allowed to have static fields";
+
+            try {
+                Object rawValue = field.get(value);
+                Object niceValue = coerce(rawValue, fieldType);
+
+                shape = shape.defineProperty(field.getName(), niceValue, 0);
+                fieldValues[i] = niceValue;
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return shape.createFactory().newInstance(fieldValues);
     }
 }

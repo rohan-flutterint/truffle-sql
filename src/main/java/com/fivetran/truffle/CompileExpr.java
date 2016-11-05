@@ -214,7 +214,10 @@ class CompileExpr implements RexVisitor<ExprBase> {
 
     @Override
     public ExprBase visitFieldAccess(RexFieldAccess fieldAccess) {
-        throw new UnsupportedOperationException();
+        ExprBase receiver = fieldAccess.getReferenceExpr().accept(new CompileExpr(from));
+        String name = fieldAccess.getField().getName();
+
+        return ExprReadPropertyNodeGen.create(name, receiver);
     }
 
     @Override
