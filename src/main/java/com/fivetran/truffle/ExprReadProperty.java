@@ -72,13 +72,9 @@ public abstract class ExprReadProperty extends ExprBase {
         CompilerAsserts.neverPartOfCompilation();
 
         if (!TruffleSqlContext.isSqlObject(receiver)) {
-            /* The specialization doForeignObject handles this case. */
+            // TODO The specialization doForeignObject handles this case
             return null;
         }
         return receiver.getShape();
-    }
-
-    protected static boolean namesEqual(String cachedName, String name) {
-        return cachedName.equals(name);
     }
 }
