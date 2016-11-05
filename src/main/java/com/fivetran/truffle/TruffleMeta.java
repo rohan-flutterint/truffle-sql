@@ -13,7 +13,6 @@ import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteSchema;
-import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
@@ -230,8 +229,8 @@ class TruffleMeta extends MetaImpl {
         return new CalciteCatalogReader(rootSchema, true, Collections.emptyList(), types);
     }
 
-    public static JavaTypeFactory typeFactory() {
-        return new JavaTypeFactoryImpl();
+    public static TruffleTypeFactory typeFactory() {
+        return new TruffleTypeFactory();
     }
 
     private RelRoot expandView(RelDataType rowType, String queryString, List<String> schemaPath, List<String> viewPath) {

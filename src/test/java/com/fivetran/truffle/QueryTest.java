@@ -1,6 +1,5 @@
 package com.fivetran.truffle;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -99,7 +98,6 @@ public class QueryTest extends SqlTestBase {
     }
 
     @Test
-    @Ignore
     public void unqualifiedNestedType() throws SQLException {
         TruffleMeta.mockRows = new Object[]{
                 new IdNested(1, 2, 3),
