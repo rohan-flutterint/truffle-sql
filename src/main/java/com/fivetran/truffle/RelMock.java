@@ -60,7 +60,7 @@ public class RelMock extends RowSource {
             case ROW:
                 return truffleObject(value, type);
             default:
-                return Types.internal(value, type);
+                return Types.coerceAny(value, type);
         }
     }
 

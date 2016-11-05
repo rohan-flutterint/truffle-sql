@@ -37,7 +37,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
         if (RexLiteral.isNullLiteral(literal))
             return ExprLiteral.Null();
 
-        Object value = Types.object(literal);
+        Object value = Types.coerceLiteral(literal);
         SqlTypeName type = literal.getType().getSqlTypeName();
         FrameSlotKind kind = Types.kind(type);
 

@@ -64,21 +64,21 @@ public class Types {
     /**
      * Convert a SQL literal to a runtime value
      */
-    static Object object(RexLiteral literal) {
+    static Object coerceLiteral(RexLiteral literal) {
         if (RexLiteral.isNullLiteral(literal))
             return SqlNull.INSTANCE;
 
         Object value = literal.getValue();
         RelDataType type = literal.getType();
 
-        return internal(value, type);
+        return coerceAny(value, type);
     }
 
     /**
-     * Coerce value from any reasonable representation to Truffle's internal representation of type.
+     * Coerce value from any reasonable representation to our internal representation of type.
      * Not fast! Suitable for things like literals, mocks that are executed infrequently.
      */
-    static Object internal(Object value, RelDataType type) {
+    static Object coerceAny(Object value, RelDataType type) {
         if (value == null)
             return SqlNull.INSTANCE;
 
@@ -146,7 +146,7 @@ public class Types {
     /**
      * Simplify calcite's type system into the types we actually implement at runtime.
      */
-    public static RelDataType simplify(RelDataType type) {
+    static RelDataType simplify(RelDataType type) {
         switch (kind(type.getSqlTypeName())) {
             case Long:
             case Int:
@@ -167,7 +167,7 @@ public class Types {
     /**
      * Convert our internal representation to the one Avatica is looking for.
      */
-    public static Object resultSet(Object value, RelDataType type) {
+    static Object resultSet(Object value, RelDataType type) {
         if (value == SqlNull.INSTANCE)
             return null;
 

@@ -33,7 +33,7 @@ public class RelLiteral extends RowSource {
         for (List<RexLiteral> literals : values.getTuples()) {
             for (int i = 0; i < literals.size(); i++) {
                 RexLiteral literal = literals.get(i);
-                Object value = Types.object(literal);
+                Object value = Types.coerceLiteral(literal);
                 FrameSlot slot = slots.get(i);
 
                 thenFrame.setObject(slot, value);
