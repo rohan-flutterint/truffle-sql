@@ -15,7 +15,7 @@ public class QueryTest extends SqlTestBase {
 
     @Test
     public void echoMacro() throws SQLException {
-        TruffleMeta.mockRows = new Object[]{
+        mockRows = new Object[]{
                 new IdName(1, "one"),
                 new IdName(2, "two")
         };
@@ -29,7 +29,7 @@ public class QueryTest extends SqlTestBase {
 
     @Test
     public void mockMacro() throws SQLException {
-        TruffleMeta.mockRows = new Object[]{
+        mockRows = new Object[]{
                 new IdName(1, "one"),
                 new IdName(2, "two")
         };
@@ -82,7 +82,7 @@ public class QueryTest extends SqlTestBase {
 
     @Test
     public void nestedType() throws SQLException {
-        TruffleMeta.mockRows = new Object[]{
+        mockRows = new Object[]{
                 new IdNested(1, 2, 3),
                 new IdNested(4, 5, 6),
                 new IdNested(10)
@@ -99,7 +99,7 @@ public class QueryTest extends SqlTestBase {
 
     @Test
     public void unqualifiedNestedType() throws SQLException {
-        TruffleMeta.mockRows = new Object[]{
+        mockRows = new Object[]{
                 new IdNested(1, 2, 3),
                 new IdNested(4, 5, 6),
                 new IdNested(10)

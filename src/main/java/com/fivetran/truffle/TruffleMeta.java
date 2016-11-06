@@ -27,28 +27,41 @@ import org.apache.calcite.schema.TableMacro;
 import org.apache.calcite.schema.TranslatableTable;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOperatorTable;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.util.ReflectiveSqlOperatorTable;
 import org.apache.calcite.sql.validate.SqlConformance;
 import org.apache.calcite.sql.validate.SqlUserDefinedTableMacro;
 import org.apache.calcite.sql.validate.SqlValidatorImpl;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.util.Util;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 class TruffleMeta extends MetaImpl {
+
+    /**
+     * More forgiving versions of standard operators,
+     * plus anything registered using {@link TruffleMeta#registerMacro(String, TableMacro)}
+     */
+    private static final ReflectiveSqlOperatorTable CUSTOM_OPERATORS = ForgivingOperatorTable.instance();
+
+    private static final SqlOperatorTable OPERATORS = createOperatorTable();
+
     public TruffleMeta(AvaticaConnection connection) {
         super(connection);
     }
@@ -112,25 +125,14 @@ class TruffleMeta extends MetaImpl {
     }
 
     private SqlValidatorImpl validator() {
-        // .instance() initializes SqlStdOperatorTable by scanning its own public static fields
-        SqlStdOperatorTable standard = SqlStdOperatorTable.instance();
-
-        // More forgiving versions of standard operators
-        ForgivingOperatorTable custom = ForgivingOperatorTable.instance();
-
-        custom.register(echoMacro());
-        custom.register(mockMacro());
-
-        // Combine them, with custom operators shadowing standard operators
-        ShadowOperatorTable both = new ShadowOperatorTable(custom, standard);
-
-        return new SqlValidatorImpl(both, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
+        return new SqlValidatorImpl(OPERATORS, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
             // No overrides
         };
     }
 
-    private SqlUserDefinedTableMacro echoMacro() {
-        return tableMacro("echo", new TableMacro() {
+    private static SqlOperatorTable createOperatorTable() {
+        // Register custom macros
+        registerMacro("echo", new TableMacro() {
             @Override
             public TranslatableTable apply(List<Object> arguments) {
                 Object row = new Object() {
@@ -147,29 +149,24 @@ class TruffleMeta extends MetaImpl {
                 );
             }
         });
+
+        // .instance() initializes SqlStdOperatorTable by scanning its own public static fields
+        SqlStdOperatorTable standard = SqlStdOperatorTable.instance();
+
+        // Combine custom and standard operators, with custom operators shadowing standard operators
+        return new ShadowOperatorTable(CUSTOM_OPERATORS, standard);
     }
 
-    public static Object[] mockRows;
-
-    private SqlUserDefinedTableMacro mockMacro() {
-        return tableMacro("mock", new TableMacro() {
-            @Override
-            public TranslatableTable apply(List<Object> arguments) {
-                Objects.requireNonNull(mockRows, "You need to set TruffleMeta.mockRows before calling TABLE(mock())");
-
-                return new MockTable(mockRows[0].getClass(), mockRows);
-            }
-
-            @Override
-            public List<FunctionParameter> getParameters() {
-                return Collections.emptyList();
-            }
-        });
+    /**
+     * Register a table macro as a custom operator, so it can be used in queries like SELECT * FROM TABLE(macro(...))
+     */
+    public static void registerMacro(String name, TableMacro macro) {
+        CUSTOM_OPERATORS.register(tableMacro(name, macro));
     }
 
-    @NotNull
-    private FunctionParameter simpleMacroParameter(final String name, Class<?> type) {
+    private static FunctionParameter simpleMacroParameter(final String name, Class<?> type) {
         RelDataType relType = typeFactory().createJavaType(type);
+
         return new FunctionParameter() {
             @Override
             public int getOrdinal() {
@@ -196,7 +193,7 @@ class TruffleMeta extends MetaImpl {
     /**
      * Based on {@link CalciteCatalogReader#toOp(SqlIdentifier, org.apache.calcite.schema.Function)}
      */
-    private SqlUserDefinedTableMacro tableMacro(String name, TableMacro function) {
+    private static SqlUserDefinedTableMacro tableMacro(String name, TableMacro function) {
         JavaTypeFactory typeFactory = typeFactory();
         List<RelDataType> argTypes = new ArrayList<>();
         List<SqlTypeFamily> typeFamilies = new ArrayList<>();
