@@ -1,18 +1,10 @@
 package com.fivetran.truffle;
 
 import com.google.common.collect.Lists;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.parquet.avro.AvroParquetReader;
-import org.apache.parquet.avro.AvroParquetWriter;
-import org.apache.parquet.avro.AvroReadSupport;
-import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.ColumnReadStore;
 import org.apache.parquet.column.ColumnReader;
@@ -20,11 +12,10 @@ import org.apache.parquet.column.impl.ColumnReadStoreImpl;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.RowGroupFilter;
-import org.apache.parquet.filter2.predicate.FilterApi;
-import org.apache.parquet.filter2.predicate.FilterPredicate;
-import org.apache.parquet.hadoop.*;
+import org.apache.parquet.hadoop.Footer;
+import org.apache.parquet.hadoop.ParquetFileReader;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
-import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.metadata.FileMetaData;
 import org.apache.parquet.hadoop.util.HiddenFileFilter;
 import org.apache.parquet.io.api.GroupConverter;
@@ -34,7 +25,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,15 +33,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-
 public class ParquetTest {
     private static final Logger LOG = Logger.getLogger(ParquetTest.class.getName());
 
-    private static Schema idSchema = readSchema(ParquetTest.class.getResourceAsStream("/IdSchema.json"));
-    private static Schema idNameSchema = readSchema(ParquetTest.class.getResourceAsStream("/IdNameSchema.json"));
     private static MessageType documentType = createDocumentType();
 
     /**
@@ -89,20 +73,7 @@ public class ParquetTest {
                 .named("document");
     }
 
-    private static URI idNamePath = Paths.get("./target/generated-test-sources/IdName.parquet").toUri();
     private static URI documentPath = Paths.get("./target/generated-test-sources/Document.parquet").toUri();
-
-    @BeforeClass
-    public static void writeIdName() throws IOException {
-        ParquetWriter<GenericRecord> parquetWriter = writerFor(idNamePath, idNameSchema);
-
-        parquetWriter.write(idName(1, "one"));
-        parquetWriter.write(idName(2, "two"));
-
-        parquetWriter.close();
-
-        LOG.info("Wrote " + idNamePath);
-    }
 
     @BeforeClass
     public static void writeDocument() throws IOException {
@@ -151,56 +122,6 @@ public class ParquetTest {
         parquetWriter.close();
 
         LOG.info("Wrote " + ParquetTest.documentPath);
-    }
-
-    @Test
-    public void projectColumn() throws IOException {
-        // Set what columns we want to project from file
-        Configuration conf = new Configuration();
-        AvroReadSupport.setRequestedProjection(conf, idSchema);
-
-        // Read records
-        AvroReadSupport<GenericRecord> readSupport = new AvroReadSupport<>();
-        ParquetReader<GenericRecord> parquetReader = AvroParquetReader
-                .builder(readSupport, new Path(idNamePath))
-                .withConf(conf)
-                .build();
-
-        // Check first record
-        GenericRecord first = parquetReader.read();
-
-        assertThat(first.get("id"), equalTo(1));
-        assertThat(first.get("name"), nullValue());
-    }
-
-    @Test
-    public void filterOnRead() throws IOException {
-        // Filter out first row
-        FilterPredicate filterPredicate = FilterApi.notEq(FilterApi.intColumn("id"), 1);
-
-        // Read records
-        AvroReadSupport<GenericRecord> readSupport = new AvroReadSupport<>();
-        ParquetReader<GenericRecord> parquetReader = AvroParquetReader
-                .builder(readSupport, new Path(idNamePath))
-                .withFilter(FilterCompat.get(filterPredicate))
-                .build();
-
-        // Check first record
-        GenericRecord first = parquetReader.read();
-
-        assertThat(first.get("id"), equalTo(2));
-        assertThat(first.get("name"), equalTo("two"));
-    }
-
-    @Test
-    public void readIdNameColumns() throws IOException {
-        ColumnDescriptor id = type(idNameSchema).getColumnDescription(new String[]{"id"});
-        ColumnDescriptor name = type(idNameSchema).getColumnDescription(new String[]{"name"});
-
-        for (ColumnReadStore page : readColumns(idNamePath, type(idNameSchema))) {
-            readColumn(page, id, column -> column.getInteger());
-            readColumn(page, name, column -> column.getBinary().toStringUsingUTF8());
-        }
     }
 
     @Test
@@ -264,21 +185,6 @@ public class ParquetTest {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    private static Schema readSchema(InputStream schemaStream) {
-        try {
-            return new Schema.Parser().parse(schemaStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static GenericRecord idName(int id, String name) {
-        return new GenericRecordBuilder(idNameSchema)
-                .set("id", id)
-                .set("name", name)
-                .build();
     }
 
     private static class Document {
@@ -345,34 +251,9 @@ public class ParquetTest {
         return new Language(code, country);
     }
 
-    private static ParquetWriter<GenericRecord> writerFor(URI file, Schema schema) throws IOException {
-        Files.deleteIfExists(Paths.get(file));
-
-        // Not quite sure what this is
-        GenericData model = GenericData.get();
-
-        // Create writer
-        int blockSize = 256 * 1024 * 1024;
-        int pageSize = 64 * 1024;
-
-        return AvroParquetWriter
-                .<GenericRecord>builder(new Path(file))
-                .withSchema(schema)
-                .withDataModel(model)
-                .withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
-                .withRowGroupSize(blockSize)
-                .withPageSize(pageSize)
-                .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
-                .build();
-    }
-
     private static <T> ParquetWriter<T> pojoWriter(URI file, Class<T> clazz, MessageType schema) throws IOException {
         Files.deleteIfExists(Paths.get(file));
 
         return new PojoParquetWriter<>(new Path(file), schema);
-    }
-
-    private static MessageType type(Schema type) {
-        return new AvroSchemaConverter().convert(type);
     }
 }
