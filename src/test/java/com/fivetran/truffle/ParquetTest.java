@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -128,10 +129,12 @@ public class ParquetTest {
     public void readDocumentColumns() throws IOException {
         ColumnDescriptor docId = documentType.getColumnDescription(new String[]{"docId"});
         ColumnDescriptor linksForward = documentType.getColumnDescription(new String[]{"links", "forward"});
+        ColumnDescriptor nameLanguageCountry = documentType.getColumnDescription(new String[]{"name", "language", "country"});
 
         for (ColumnReadStore page : readColumns(documentPath, documentType)) {
             readColumn(page, docId, column -> column.getLong());
             readColumn(page, linksForward, column -> column.getLong());
+            readColumn(page, nameLanguageCountry, column -> column.getBinary().toStringUsingUTF8());
         }
     }
 
@@ -139,14 +142,16 @@ public class ParquetTest {
         int maxDefinition = column.getMaxDefinitionLevel();
         int maxRepetition = column.getMaxRepetitionLevel();
 
+        System.out.println(Joiner.on(".").join(column.getPath()));
         System.out.println("v\tr" + maxRepetition + "\td" + maxDefinition);
 
         ColumnReader columnReader = read.getColumnReader(column);
+        long count = columnReader.getTotalValueCount();
 
-        for (long row = 0; row < columnReader.getTotalValueCount(); row++) {
-            T value = readValue.apply(columnReader);
+        for (long row = 0; row < count; row++) {
             int definition = columnReader.getCurrentDefinitionLevel();
             int repetition = columnReader.getCurrentRepetitionLevel();
+            String value = definition < maxDefinition ? "-" : readValue.apply(columnReader).toString();
 
             System.out.println(value + "\t" + repetition + "\t" + definition);
 
