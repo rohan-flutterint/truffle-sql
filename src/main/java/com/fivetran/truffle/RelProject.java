@@ -47,6 +47,7 @@ public class RelProject extends RowTransform {
         List<? extends FrameSlot> slots = resultFrame.getSlots();
         VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, resultFrame);
 
+        // TODO length of loop is a compile-time constant, make sure it gets unrolled
         for (int column = 0; column < select.length; column++) {
             Object value = select[column].executeGeneric(frame);
             FrameSlot slot = slots.get(column);

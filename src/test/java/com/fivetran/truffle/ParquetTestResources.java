@@ -186,7 +186,7 @@ public final class ParquetTestResources {
         return new Language(code, country);
     }
 
-    public static <T> ParquetWriter<T> pojoWriter(URI file, Class<T> clazz, MessageType schema) throws IOException {
+    private static <T> ParquetWriter<T> pojoWriter(URI file, Class<T> clazz, MessageType schema) throws IOException {
         Files.deleteIfExists(Paths.get(file));
 
         return new PojoParquetWriter<>(new Path(file), schema);

@@ -22,7 +22,7 @@ import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.List;
 
-public class Types {
+class Types {
     /**
      * Describe the stack frame we will use to represent a relation
      */

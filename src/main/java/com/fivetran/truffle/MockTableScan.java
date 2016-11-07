@@ -5,7 +5,7 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.core.TableScan;
 
-public class MockTableScan extends TableScan {
+class MockTableScan extends TableScan implements CompileRowSource {
     public final Class<?> type;
     public final Object[] rows;
 
@@ -14,5 +14,10 @@ public class MockTableScan extends TableScan {
 
         this.type = type;
         this.rows = rows;
+    }
+
+    @Override
+    public RowSource compile(RowSink then) {
+        return new RelMock(getRowType(), type, rows, then);
     }
 }

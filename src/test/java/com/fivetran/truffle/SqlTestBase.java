@@ -5,10 +5,13 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.FunctionParameter;
 import org.apache.calcite.schema.TableMacro;
 import org.apache.calcite.schema.TranslatableTable;
+import org.apache.parquet.hadoop.Footer;
+import org.apache.parquet.schema.MessageType;
 import org.intellij.lang.annotations.Language;
 import org.junit.After;
 import org.junit.BeforeClass;
 
+import java.net.URI;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +50,18 @@ public abstract class SqlTestBase {
             public TranslatableTable apply(List<Object> arguments) {
                 String file = (String) arguments.get(0);
 
-                throw new UnsupportedOperationException();
+                assert file.startsWith("file://") : "Only local files are supported";
+
+                URI uri = URI.create(file);
+                List<Footer> footers = Parquets.footers(uri);
+
+                if (footers.isEmpty())
+                    throw new RuntimeException("No footers in " + uri);
+
+                // TODO this only reads 1 footer, a parquet file could have multiple contradictory footers
+                MessageType schema = footers.get(0).getParquetMetadata().getFileMetaData().getSchema();
+
+                return new ParquetTable(uri, schema);
             }
 
             @Override

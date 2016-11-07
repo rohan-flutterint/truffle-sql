@@ -6,7 +6,6 @@ import org.apache.calcite.rel.RelShuttle;
 import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.*;
-import org.apache.calcite.rel.type.RelDataType;
 
 import java.util.Objects;
 
@@ -56,11 +55,10 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(TableScan scan) {
-        if (scan instanceof MockTableScan) {
-            MockTableScan mock = (MockTableScan) scan;
-            RelDataType type = mock.getRowType();
+        if (scan instanceof CompileRowSource) {
+            CompileRowSource compile = (CompileRowSource) scan;
 
-            compiled = new RelMock(type, mock.type, mock.rows, then);
+            compiled = compile.compile(then);
 
             return scan;
         }
