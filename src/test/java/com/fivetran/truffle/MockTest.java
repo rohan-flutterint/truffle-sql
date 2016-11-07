@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Test query expressions like FROM
  */
-public class QueryTest extends SqlTestBase {
+public class MockTest extends SqlTestBase {
 
     @Test
     public void echoMacro() throws SQLException {

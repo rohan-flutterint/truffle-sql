@@ -1,5 +1,7 @@
 package com.fivetran.truffle;
 
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.FunctionParameter;
 import org.apache.calcite.schema.TableMacro;
 import org.apache.calcite.schema.TranslatableTable;
@@ -13,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class SqlTestBase {
+public abstract class SqlTestBase {
     @BeforeClass
     public static void registerDriver() {
         // Causes driver to register itself
@@ -24,6 +26,7 @@ public class SqlTestBase {
 
     @BeforeClass
     public static void registerTableMacros() {
+        // mock() returns whatever is currently in SqlTestBase.mockRows
         TruffleMeta.registerMacro("mock", new TableMacro() {
             @Override
             public TranslatableTable apply(List<Object> arguments) {
@@ -35,6 +38,43 @@ public class SqlTestBase {
             @Override
             public List<FunctionParameter> getParameters() {
                 return Collections.emptyList();
+            }
+        });
+
+        // file('/path/to/file.parquet') reads parquet file from local disk
+        TruffleMeta.registerMacro("file", new TableMacro() {
+            @Override
+            public TranslatableTable apply(List<Object> arguments) {
+                String file = (String) arguments.get(0);
+
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<FunctionParameter> getParameters() {
+                return Collections.singletonList(
+                        new FunctionParameter() {
+                            @Override
+                            public int getOrdinal() {
+                                return 0;
+                            }
+
+                            @Override
+                            public String getName() {
+                                return "path";
+                            }
+
+                            @Override
+                            public RelDataType getType(RelDataTypeFactory typeFactory) {
+                                return typeFactory.createJavaType(String.class);
+                            }
+
+                            @Override
+                            public boolean isOptional() {
+                                return false;
+                            }
+                        }
+                );
             }
         });
     }
