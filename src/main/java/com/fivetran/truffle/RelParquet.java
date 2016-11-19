@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  */
-public class RelParquet extends RowSource {
+public class RelParquet extends RowSourceSimple {
     /**
      * File we are reading
      */

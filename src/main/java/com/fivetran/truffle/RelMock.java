@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 
-public class RelMock extends RowSource {
+public class RelMock extends RowSourceSimple {
     private final RelDataType relType;
     private final Class<?> type;
     private final Object[] rows;

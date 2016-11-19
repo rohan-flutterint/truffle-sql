@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * A VALUES literal
  */
-public class RelLiteral extends RowSource {
+public class RelLiteral extends RowSourceSimple {
     private final LogicalValues values;
 
     public RelLiteral(LogicalValues values) {

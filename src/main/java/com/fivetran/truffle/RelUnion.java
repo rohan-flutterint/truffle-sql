@@ -5,15 +5,18 @@ public class RelUnion extends RowSource {
     private final RowSource[] all;
 
     protected RelUnion(RowSource[] all) {
-        super(FrameDescriptorPart.root(0));
-
         this.all = all;
     }
 
     @Override
     public void executeVoid() {
-        // TODO these aren't linked to then
         for (RowSource each : all)
             each.executeVoid();
+    }
+
+    @Override
+    public void bind(LazyRowSink next) {
+        for (RowSource each : all)
+            each.bind(next);
     }
 }
