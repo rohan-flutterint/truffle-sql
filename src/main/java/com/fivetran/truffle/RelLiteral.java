@@ -1,7 +1,6 @@
 package com.fivetran.truffle;
 
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.apache.calcite.rel.logical.LogicalValues;
@@ -14,21 +13,17 @@ import java.util.List;
  */
 public class RelLiteral extends RowSource {
     private final LogicalValues values;
-    private final FrameDescriptor resultType;
 
-    @Child
-    private RowSink then;
+    public RelLiteral(LogicalValues values) {
+        super(FrameDescriptorPart.root(values.getRowType().getFieldCount()));
 
-    public RelLiteral(LogicalValues values, RowSink then) {
         this.values = values;
-        this.resultType = Types.frame(values.getRowType());
-        this.then = then;
     }
 
     @Override
     public void executeVoid() {
-        VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, resultType);
-        List<? extends FrameSlot> slots = resultType.getSlots();
+        VirtualFrame thenFrame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, sourceFrame.frame());
+        List<? extends FrameSlot> slots = sourceFrame.frame().getSlots();
 
         for (List<RexLiteral> literals : values.getTuples()) {
             for (int i = 0; i < literals.size(); i++) {
@@ -36,7 +31,7 @@ public class RelLiteral extends RowSource {
                 Object value = Types.coerceLiteral(literal);
                 FrameSlot slot = slots.get(i);
 
-                thenFrame.setObject(slot, value);
+                RelMock.setSlot(thenFrame, slot, value);
             }
 
             then.executeVoid(thenFrame);

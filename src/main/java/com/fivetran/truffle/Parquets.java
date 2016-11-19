@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import com.oracle.truffle.api.object.Shape;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.StructKind;
@@ -31,17 +32,14 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 class Parquets {
     private static final Configuration conf = new Configuration();
 
     static ColumnReadStore columns(URI fromFile, MessageType schema, Footer footer) {
         try {
-            // Determine which blocks to read
-            List<BlockMetaData> blocks = footer.getParquetMetadata().getBlocks();
-            MessageType fileSchema = footer.getParquetMetadata().getFileMetaData().getSchema();
-            List<BlockMetaData> filteredBlocks = RowGroupFilter.filterRowGroups(
-                    FilterCompat.NOOP, blocks, fileSchema);
+            List<BlockMetaData> filteredBlocks = blockMetaData(footer);
 
             // Create file-reader
             FileMetaData parquetFileMetadata = footer.getParquetMetadata().getFileMetaData();
@@ -62,6 +60,14 @@ class Parquets {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    static List<BlockMetaData> blockMetaData(Footer footer) {
+        // Determine which blocks to read
+        List<BlockMetaData> blocks = footer.getParquetMetadata().getBlocks();
+        MessageType fileSchema = footer.getParquetMetadata().getFileMetaData().getSchema();
+
+        return RowGroupFilter.filterRowGroups(FilterCompat.NOOP, blocks, fileSchema);
     }
 
     static List<Footer> footers(URI fromFile) {
@@ -118,6 +124,29 @@ class Parquets {
             default:
                 throw new RuntimeException(parquetType + " is not supported");
         }
+    }
+
+    static Shape shape(GroupType schema) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Same as {@link Parquets#shape(GroupType)}, but optimistically assumes all fields will never be null.
+     */
+    static Shape shapeOptimistic(GroupType schema) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static boolean containsPath(String[] parent, String[] child) {
+        if (parent.length > child.length)
+            return false;
+
+        for (int i = 0; i < parent.length; i++) {
+            if (!Objects.equals(parent[i], child[i]))
+                return false;
+        }
+
+        return true;
     }
 
     /**

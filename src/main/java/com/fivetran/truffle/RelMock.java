@@ -1,8 +1,8 @@
 package com.fivetran.truffle;
 
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.Shape;
@@ -10,39 +10,35 @@ import org.apache.calcite.rel.type.RelDataType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.List;
+import java.util.Objects;
 
 public class RelMock extends RowSource {
     private final RelDataType relType;
     private final Class<?> type;
     private final Object[] rows;
 
-    @Child
-    private RowSink then;
+    public RelMock(RelDataType relType, Class<?> type, Object[] rows) {
+        super(FrameDescriptorPart.root(relType.getFieldCount()));
 
-    public RelMock(RelDataType relType, Class<?> type, Object[] rows, RowSink then) {
         this.relType = relType;
         this.type = type;
         this.rows = rows;
-        this.then = then;
     }
 
     @Override
     protected void executeVoid() {
         try {
-            FrameDescriptor frameType = Types.frame(relType);
-            VirtualFrame frame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, frameType);
+            VirtualFrame frame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, sourceFrame.frame());
             Field[] fields = type.getFields();
-            List<? extends FrameSlot> slots = frameType.getSlots();
 
             for (Object row : rows) {
                 for (int column = 0; column < fields.length; column++) {
-                    FrameSlot slot = slots.get(column);
+                    FrameSlot slot = sourceFrame.findFrameSlot(column);
                     Object rawValue = fields[column].get(row);
                     RelDataType type = relType.getFieldList().get(column).getType();
                     Object truffleValue = coerce(rawValue, type);
 
-                    frame.setObject(slot, truffleValue);
+                    setSlot(frame, slot, truffleValue);
                 }
 
                 then.executeVoid(frame);
@@ -52,7 +48,39 @@ public class RelMock extends RowSource {
         }
     }
 
-    private Object coerce(Object value, RelDataType type) {
+    public static void setSlot(VirtualFrame frame, FrameSlot slot, Object truffleValue) {
+        Objects.requireNonNull(truffleValue);
+
+        if (truffleValue == SqlNull.INSTANCE) {
+            slot.setKind(FrameSlotKind.Object);
+            frame.setObject(slot, SqlNull.INSTANCE);
+        }
+
+        switch (slot.getKind()) {
+            case Long:
+            case Int:
+                slot.setKind(FrameSlotKind.Long);
+                frame.setLong(slot, (long) truffleValue);
+
+                break;
+            case Float:
+            case Double:
+                slot.setKind(FrameSlotKind.Double);
+                frame.setDouble(slot, (double) truffleValue);
+
+                break;
+            case Boolean:
+                slot.setKind(FrameSlotKind.Boolean);
+                frame.setBoolean(slot, (boolean) truffleValue);
+
+                break;
+            default:
+                slot.setKind(FrameSlotKind.Object);
+                frame.setObject(slot, truffleValue);
+        }
+    }
+
+    private static Object coerce(Object value, RelDataType type) {
         if (value == null)
             return SqlNull.INSTANCE;
 
@@ -68,7 +96,7 @@ public class RelMock extends RowSource {
      * Convert a Java object to a TruffleObject using reflection.
      * This is very slow! This should only be used for mocks.
      */
-    private TruffleObject truffleObject(Object value, RelDataType type) {
+    private static TruffleObject truffleObject(Object value, RelDataType type) {
         Shape shape = TruffleSqlContext.LAYOUT.createShape(SqlObjectType.INSTANCE);
         Class<?> clazz = value.getClass();
         Field[] fields = clazz.getFields();

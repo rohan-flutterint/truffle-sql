@@ -1,8 +1,5 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.source.SourceSection;
-
 /**
  * A SQL expression that transforms 1 row of data at a time.
  *
@@ -16,9 +13,16 @@ public abstract class RowTransform extends RowSink {
     @Child
     protected RowSink then;
 
-    protected RowTransform(SourceSection source, FrameDescriptor sourceFrame, RowSink then) {
-        super(sourceFrame);
-
-        this.then = then;
+    protected RowTransform() {
     }
+
+    @Override
+    public void bind(LazyRowSink next) {
+        if (then == null)
+            then = next.apply(frame());
+        else
+            then.bind(next);
+    }
+
+    public abstract FrameDescriptorPart frame();
 }

@@ -1,11 +1,8 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.sql.type.BasicSqlType;
@@ -20,24 +17,24 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
-import java.util.List;
 
 class Types {
-    /**
-     * Describe the stack frame we will use to represent a relation
-     */
-    static FrameDescriptor frame(RelDataType rowType) {
-        List<RelDataTypeField> fields = rowType.getFieldList();
-        FrameDescriptor describe = new FrameDescriptor();
 
-        for (int column = 0; column < fields.size(); column++) {
-            SqlTypeName type = fields.get(column).getType().getSqlTypeName();
-            FrameSlotKind kind = kind(type);
-            FrameSlot slot = describe.addFrameSlot(column, kind);
-        }
-
-        return describe;
-    }
+//    /**
+//     * Describe the stack frame we will use to represent a relation
+//     */
+//    static FrameDescriptor frame(RelDataType rowType) {
+//        List<RelDataTypeField> fields = rowType.getFieldList();
+//        FrameDescriptor describe = new FrameDescriptor();
+//
+//        for (int column = 0; column < fields.size(); column++) {
+//            SqlTypeName type = fields.get(column).getType().getSqlTypeName();
+//            FrameSlotKind kind = kind(type);
+//            FrameSlot slot = describe.addFrameSlot(column, kind);
+//        }
+//
+//        return describe;
+//    }
 
     /**
      * What type of slot do we need to represent a non-nullable value of a type?

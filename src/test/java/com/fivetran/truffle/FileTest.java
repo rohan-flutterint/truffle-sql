@@ -12,7 +12,16 @@ import static org.junit.Assert.assertThat;
 
 public class FileTest extends SqlTestBase {
     @Test
-    public void selectColumn() throws IOException, SQLException {
+    public void primitive() throws IOException, SQLException {
+        List<Object[]> rows = query("SELECT docId + 1 FROM TABLE(file('" + documentPath() + "'))");
+
+        assertThat(rows, contains(new Object[][] {
+                {10},
+                {20}
+        }));
+    }
+    @Test
+    public void nested() throws IOException, SQLException {
         List<Object[]> rows = query("SELECT docId, `name`.url FROM TABLE(file('" + documentPath() + "'))");
 
         assertThat(rows, contains(new Object[][] {

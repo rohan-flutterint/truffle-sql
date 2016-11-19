@@ -12,12 +12,12 @@ public abstract class ExprAnd extends ExprBinary {
     }
 
     @Specialization
-    protected SqlNull or(SqlNull left, boolean right) {
+    protected SqlNull and(SqlNull left, boolean right) {
         return SqlNull.INSTANCE;
     }
 
     @Specialization
-    protected SqlNull or(boolean left, SqlNull right) {
+    protected SqlNull and(boolean left, SqlNull right) {
         return SqlNull.INSTANCE;
     }
 }

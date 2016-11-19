@@ -17,7 +17,7 @@ class MockTableScan extends TableScan implements CompileRowSource {
     }
 
     @Override
-    public RowSource compile(RowSink then) {
-        return new RelMock(getRowType(), type, rows, then);
+    public RowSource compile() {
+        return new RelMock(getRowType(), type, rows);
     }
 }

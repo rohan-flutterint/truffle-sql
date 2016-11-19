@@ -1,12 +1,12 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.apache.calcite.rex.*;
 import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.util.List;
+import java.util.Objects;
 
 class CompileExpr implements RexVisitor<ExprBase> {
     /**
@@ -14,9 +14,9 @@ class CompileExpr implements RexVisitor<ExprBase> {
      *
      * Can be empty in queries like SELECT 1
      */
-    private final FrameDescriptor from;
+    private final FrameDescriptorPart from;
 
-    CompileExpr(FrameDescriptor from) {
+    CompileExpr(FrameDescriptorPart from) {
         this.from = from;
     }
 
@@ -24,7 +24,9 @@ class CompileExpr implements RexVisitor<ExprBase> {
     public ExprBase visitInputRef(RexInputRef inputRef) {
         FrameSlot slot = from.findFrameSlot(inputRef.getIndex());
 
-        return new ExprProject(slot);
+        Objects.requireNonNull(slot);
+
+        return ExprReadLocalNodeGen.create(slot);
     }
 
     @Override

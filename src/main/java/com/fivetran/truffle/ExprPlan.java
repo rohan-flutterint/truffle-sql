@@ -9,9 +9,9 @@ import org.apache.calcite.rel.RelRoot;
  */
 public class ExprPlan extends Node {
     public final RelRoot plan;
-    public final RowSink then;
+    public final LazyRowSink then;
 
-    public ExprPlan(RelRoot plan, RowSink then) {
+    public ExprPlan(RelRoot plan, LazyRowSink then) {
         this.plan = plan;
         this.then = then;
     }

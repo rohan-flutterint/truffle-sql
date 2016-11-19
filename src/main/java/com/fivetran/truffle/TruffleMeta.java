@@ -3,9 +3,7 @@ package com.fivetran.truffle;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -13,6 +11,7 @@ import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteSchema;
+import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
@@ -236,6 +235,9 @@ class TruffleMeta extends MetaImpl {
 
     private RelRoot plan(SqlNode parsed) {
         VolcanoPlanner planner = new VolcanoPlanner(null, new TrufflePlannerContext());
+
+        planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
+
         RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory()));
         SqlToRelConverter.Config config = SqlToRelConverter.configBuilder().withTrimUnusedFields(true).build();
         SqlToRelConverter converter = new SqlToRelConverter(
@@ -247,7 +249,24 @@ class TruffleMeta extends MetaImpl {
                 config
         );
 
-        return converter.convertQuery(parsed, true, true);
+        RelRoot root = converter.convertQuery(parsed, true, true);
+
+        return root;
+        // TODO we can't optimize until we convert *everything* to a physical plan
+        /*
+        Program program = Programs.standard();
+
+        // program.setExecutor(?) ??
+
+        RelTraitSet traits = root.rel.getTraitSet()
+                .replace(Convention.NONE)
+                .replace(root.collation)
+                .simplify();
+
+        RelNode optimized = program.run(planner, root.rel, traits);
+
+        return root.withRel(optimized);
+        */
     }
 
     private final Map<StatementHandle, Running> runningQueries = new ConcurrentHashMap<>();
@@ -273,25 +292,23 @@ class TruffleMeta extends MetaImpl {
 
         // Create a program that sticks query results in a list
         List<Object[]> results = new ArrayList<>();
-        FrameDescriptor resultFrame = com.fivetran.truffle.Types.frame(plan.validatedRowType);
-        RowSink then = new RowSink(resultFrame) {
+        LazyRowSink then = resultFrame -> new RowSink() {
+            @Override
+            public void bind(LazyRowSink next) {
+                throw new UnsupportedOperationException("Final stage cannot be used as a source");
+            }
+
             @Override
             public void executeVoid(VirtualFrame frame) {
-                List<? extends FrameSlot> slots = resultFrame.getSlots();
-                Object[] values = new Object[slots.size()];
+                Object[] values = new Object[resultFrame.size()];
 
-                for (int i = 0; i < slots.size(); i++) {
-                    FrameSlot slot = slots.get(i);
+                for (int i = 0; i < resultFrame.size(); i++) {
+                    FrameSlot slot = resultFrame.findFrameSlot(i);
+                    Object truffleValue = frame.getValue(slot);
+                    RelDataType type = plan.validatedRowType.getFieldList().get(i).getType();
+                    Object resultSetValue = com.fivetran.truffle.Types.resultSet(truffleValue, type);
 
-                    try {
-                        Object truffleValue = frame.getObject(slot);
-                        RelDataType type = plan.validatedRowType.getFieldList().get(i).getType();
-                        Object resultSetValue = com.fivetran.truffle.Types.resultSet(truffleValue, type);
-
-                        values[i] = resultSetValue;
-                    } catch (FrameSlotTypeException e) {
-                        throw new RuntimeException(e);
-                    }
+                    values[i] = resultSetValue;
                 }
 
                 results.add(values);

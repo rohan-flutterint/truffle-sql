@@ -1,6 +1,5 @@
 package com.fivetran.truffle;
 
-import com.oracle.truffle.api.source.SourceSection;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttle;
 import org.apache.calcite.rel.core.TableFunctionScan;
@@ -36,10 +35,9 @@ class CompileRel implements RelShuttle {
 
     // Used to sneakily return the result to
     private RowSource compiled;
-    private final RowSink then;
 
-    public static RowSource compile(RelNode rel, RowSink then) {
-        CompileRel compiler = new CompileRel(then);
+    public static RowSource compile(RelNode rel) {
+        CompileRel compiler = new CompileRel();
 
         rel.accept(compiler);
 
@@ -49,8 +47,7 @@ class CompileRel implements RelShuttle {
     }
 
     // Force using compile
-    private CompileRel(RowSink then) {
-        this.then = then;
+    private CompileRel() {
     }
 
     @Override
@@ -58,7 +55,7 @@ class CompileRel implements RelShuttle {
         if (scan instanceof CompileRowSource) {
             CompileRowSource compile = (CompileRowSource) scan;
 
-            compiled = compile.compile(then);
+            compiled = compile.compile();
 
             return scan;
         }
@@ -72,7 +69,7 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalValues values) {
-        compiled = new RelLiteral(values, then);
+        compiled = new RelLiteral(values);
 
         return values;
     }
@@ -87,15 +84,15 @@ class CompileRel implements RelShuttle {
         // Multiple inputs should never occur in LogicalProject, only in other RelNode implementers like MultiJoin
         assert project.getInputs().size() <= 1 : "LogicalProject has " + project.getInputs().size() + " inputs";
 
-        RelProject select = new RelProject(SourceSection.createUnavailable("SQL query", "Project"), project, then);
-
         if (project.getInputs().isEmpty())
-            compiled = new RelEmpty(select);
+            compiled = new RelEmpty();
         else {
             RelNode input = project.getInputs().get(0);
 
-            compiled = compile(input, select);
+            compiled = compile(input);
         }
+
+        compiled.bind(sourceFrame -> new RelProject(sourceFrame, project));
 
         return project;
     }
@@ -114,7 +111,7 @@ class CompileRel implements RelShuttle {
     public RelNode visit(LogicalUnion union) {
         RowSource[] sources = union.getInputs()
                 .stream()
-                .map(i -> compile(i, then))
+                .map(i -> compile(i))
                 .toArray(RowSource[]::new);
 
         compiled = new RelUnion(sources);
