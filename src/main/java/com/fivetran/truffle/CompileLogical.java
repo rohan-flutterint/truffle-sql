@@ -6,63 +6,41 @@ import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.*;
 
-import java.util.Objects;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Compiles a RelNode into a Truffle syntax tree
- * Suppose we have a query like:
- *
- * {@code
- * SELECT id || ', ' || attr
- * FROM 's3://some-file.parquet'
- * }
- *
- * We want to emit code like:
- *
- * {@code
- * function main() {
- *     file = open('s3://some-file.parquet')
- *
- *     while (file.next())
- *       int id = file.getInt('id')
- *       Object attr = file.getAny('attr')
- *       emit(id + ', ' + attr) // .. send to user, save to s3, or whatever we want to do with the query
- * }
- * }
+ * Convert logical plan (for example LogicalProject) to physical plan (for example TProject)
  */
-class CompileRel implements RelShuttle {
-    // TODO actually compile
+public class CompileLogical implements RelShuttle {
 
-    // Used to sneakily return the result to
-    private RowSource compiled;
-
-    public static RowSource compile(RelNode rel) {
-        CompileRel compiler = new CompileRel();
-
-        rel.accept(compiler);
-
-        Objects.requireNonNull(compiler.compiled, "Compiler did not produce any output");
-
-        return compiler.compiled;
+    public static TRel compile(RelNode logical) {
+        return (TRel) logical.accept(new CompileLogical());
     }
 
-    // Force using compile
-    private CompileRel() {
-    }
+    private CompileLogical() { }
 
     @Override
     public RelNode visit(TableScan scan) {
-        throw new UnsupportedOperationException("Don't know what to do with " + scan.getClass());
+        if (scan instanceof TRel)
+            return scan;
+        else
+            throw new UnsupportedOperationException();
     }
 
     @Override
     public RelNode visit(TableFunctionScan scan) {
-        throw new UnsupportedOperationException("TableFunctionScan");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public RelNode visit(LogicalValues values) {
-        throw new UnsupportedOperationException();
+        return new TValues(
+                values.getCluster(),
+                values.getRowType(),
+                values.getTuples(),
+                values.getTraitSet().replace(TRel.CONVENTION)
+        );
     }
 
     @Override
@@ -72,7 +50,14 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalProject project) {
-        throw new UnsupportedOperationException();
+        RelNode input = compile(project.getInput());
+
+        return new TProject(project.getCluster(),
+                            project.getTraitSet().replace(TRel.CONVENTION),
+                            input,
+                            project.getProjects(),
+                            project.getRowType()
+        );
     }
 
     @Override
@@ -87,7 +72,17 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(LogicalUnion union) {
-        throw new UnsupportedOperationException();
+        List<RelNode> inputs = union.getInputs()
+                .stream()
+                .map(CompileLogical::compile)
+                .collect(Collectors.toList());
+
+        return new TUnion(
+                union.getCluster(),
+                union.getTraitSet().replace(TRel.CONVENTION),
+                inputs,
+                union.all
+        );
     }
 
     @Override
@@ -117,7 +112,9 @@ class CompileRel implements RelShuttle {
 
     @Override
     public RelNode visit(RelNode other) {
-        throw new UnsupportedOperationException();
+        if (other instanceof TRel)
+            return other;
+        else
+            throw new UnsupportedOperationException("Don't know how to compile " + other);
     }
-
 }

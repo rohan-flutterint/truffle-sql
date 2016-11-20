@@ -13,9 +13,11 @@ import org.apache.calcite.config.Lex;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.Prepare;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -38,6 +40,8 @@ import org.apache.calcite.sql.validate.SqlUserDefinedTableMacro;
 import org.apache.calcite.sql.validate.SqlValidatorImpl;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
+import org.apache.calcite.tools.Program;
+import org.apache.calcite.tools.Programs;
 import org.apache.calcite.util.Util;
 
 import java.lang.reflect.Type;
@@ -238,6 +242,8 @@ class TruffleMeta extends MetaImpl {
 
         planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
 
+        planner.addRule(RuleReplaceLogicalProject.INSTANCE);
+
         RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory()));
         SqlToRelConverter.Config config = SqlToRelConverter.configBuilder().withTrimUnusedFields(true).build();
         SqlToRelConverter converter = new SqlToRelConverter(
@@ -250,23 +256,19 @@ class TruffleMeta extends MetaImpl {
         );
 
         RelRoot root = converter.convertQuery(parsed, true, true);
-
-        return root;
-        // TODO we can't optimize until we convert *everything* to a physical plan
-        /*
         Program program = Programs.standard();
 
         // program.setExecutor(?) ??
 
-        RelTraitSet traits = root.rel.getTraitSet()
-                .replace(Convention.NONE)
+        TRel physical = CompileLogical.compile(root.rel);
+
+        RelTraitSet traits = physical.getTraitSet()
                 .replace(root.collation)
                 .simplify();
 
-        RelNode optimized = program.run(planner, root.rel, traits);
+        RelNode optimized = program.run(planner, physical, traits);
 
         return root.withRel(optimized);
-        */
     }
 
     private final Map<StatementHandle, Running> runningQueries = new ConcurrentHashMap<>();

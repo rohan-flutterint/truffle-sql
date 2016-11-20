@@ -2,7 +2,7 @@ package com.fivetran.truffle;
 
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.util.Pair;
@@ -14,13 +14,13 @@ public class RuleProjectParquet extends RelOptRule {
     public static final RuleProjectParquet INSTANCE = new RuleProjectParquet();
 
     private RuleProjectParquet() {
-        super(operand(LogicalProject.class, operand(ParquetTableScan.class, none())), "RuleProjectParquet");
+        super(operand(TProject.class, operand(TParquet.class, none())), RuleProjectParquet.class.getSimpleName());
     }
 
     @Override
     public void onMatch(RelOptRuleCall call) {
-        LogicalProject project = call.rel(0);
-        ParquetTableScan scan = call.rel(1);
+        TProject project = call.rel(0);
+        TParquet scan = call.rel(1);
         MessageType smallerType = messageType(scan.schema, project);
 
         // When the query contains an expression like SELECT a+1 FROM tbl, onMatch gets called multiple times
@@ -31,13 +31,13 @@ public class RuleProjectParquet extends RelOptRule {
         // The second time it has the expressions, for example SELECT a+1 FROM tbl[a]
         // There's nothing more we can do with expressions, so we do nothing
         if (smallerType != null) {
-            ParquetTableScan pushdown = scan.withProject(smallerType);
+            TParquet pushdown = scan.withProject(smallerType);
 
             call.transformTo(pushdown);
         }
     }
 
-    private MessageType messageType(MessageType schema, LogicalProject project) {
+    private MessageType messageType(MessageType schema, Project project) {
         // We use null to represent the empty message type, since MessageType prohibits no-fields
         MessageType union = null;
 

@@ -16,9 +16,7 @@ import java.net.URI;
 /**
  * Scans a parquet-format file.
  */
-public class ParquetTableScan extends TableScan implements CompileRowSource {
-    /** Calling convention for Parquet files */
-    private static final Convention CONVENTION = new Convention.Impl("TRUFFLE", ParquetTableScan.class);
+public class TParquet extends TableScan implements TRel {
 
     /**
      * Location of the file. Could be a local file, S3.
@@ -31,12 +29,14 @@ public class ParquetTableScan extends TableScan implements CompileRowSource {
      */
     final MessageType schema;
 
-    ParquetTableScan(RelOptCluster cluster,
-                     RelTraitSet traitSet,
-                     RelOptTable table,
-                     URI file,
-                     MessageType schema) {
-        super(cluster, traitSet.plus(CONVENTION), table);
+    TParquet(RelOptCluster cluster,
+             RelTraitSet traitSet,
+             RelOptTable table,
+             URI file,
+             MessageType schema) {
+        super(cluster, traitSet, table);
+
+        assert getConvention() == TRel.CONVENTION;
 
         this.file = file;
         this.schema = schema;
@@ -88,9 +88,9 @@ public class ParquetTableScan extends TableScan implements CompileRowSource {
         return new RelParquet(file, schema);
     }
 
-    public ParquetTableScan withProject(MessageType project) {
+    public TParquet withProject(MessageType project) {
         // TODO check project <: schema
-        ParquetTableScan result = new ParquetTableScan(getCluster(), traitSet, table, file, project);
+        TParquet result = new TParquet(getCluster(), traitSet, table, file, project);
 
         result.deriveRowType();
 

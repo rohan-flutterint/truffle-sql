@@ -44,6 +44,6 @@ class ParquetTable extends AbstractTable implements TranslatableTable {
 
     @Override
     public RelNode toRel(RelOptTable.ToRelContext context, RelOptTable table) {
-        return new ParquetTableScan(context.getCluster(), context.getCluster().traitSet(), table, file, schema);
+        return new TParquet(context.getCluster(), context.getCluster().traitSetOf(TRel.CONVENTION), table, file, schema);
     }
 }

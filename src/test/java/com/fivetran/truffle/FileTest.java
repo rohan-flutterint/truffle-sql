@@ -16,8 +16,8 @@ public class FileTest extends SqlTestBase {
         List<Object[]> rows = query("SELECT docId + 1 FROM TABLE(file('" + documentPath() + "'))");
 
         assertThat(rows, contains(new Object[][] {
-                {10},
-                {20}
+                {11L},
+                {21L}
         }));
     }
     @Test
@@ -25,10 +25,10 @@ public class FileTest extends SqlTestBase {
         List<Object[]> rows = query("SELECT docId, `name`.url FROM TABLE(file('" + documentPath() + "'))");
 
         assertThat(rows, contains(new Object[][] {
-                {10, "http://A"},
-                {10, "http://B"},
-                {10, null},
-                {20, "http://C"}
+                {10L, "http://A"},
+                {10L, "http://B"},
+                {10L, null},
+                {20L, "http://C"}
         }));
     }
 }

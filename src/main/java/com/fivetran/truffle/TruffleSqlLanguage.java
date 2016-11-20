@@ -34,7 +34,8 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         ExprPlan plan = (ExprPlan) context;
 
         // Compile query into Truffle program
-        RowSource compiled = CompileRel.compile(plan.plan.rel);
+        TRel physical = CompileLogical.compile(plan.plan.rel);
+        RowSource compiled = physical.compile();
 
         compiled.bind(plan.then);
 

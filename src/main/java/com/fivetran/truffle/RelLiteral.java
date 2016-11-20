@@ -3,7 +3,7 @@ package com.fivetran.truffle;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.apache.calcite.rel.logical.LogicalValues;
+import org.apache.calcite.rel.core.Values;
 import org.apache.calcite.rex.RexLiteral;
 
 import java.util.List;
@@ -12,9 +12,9 @@ import java.util.List;
  * A VALUES literal
  */
 public class RelLiteral extends RowSourceSimple {
-    private final LogicalValues values;
+    private final Values values;
 
-    public RelLiteral(LogicalValues values) {
+    public RelLiteral(Values values) {
         super(FrameDescriptorPart.root(values.getRowType().getFieldCount()));
 
         this.values = values;
