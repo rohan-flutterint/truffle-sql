@@ -1,6 +1,6 @@
 package com.fivetran.truffle;
 
 @FunctionalInterface
-public interface LazyRowSink {
+interface LazyRowSink {
     RowSink apply(FrameDescriptorPart frame);
 }

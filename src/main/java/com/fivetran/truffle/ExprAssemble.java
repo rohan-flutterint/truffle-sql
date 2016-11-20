@@ -6,7 +6,7 @@ abstract class ExprAssemble extends ExprBase {
     /**
      * Get ColumnReaders from ColumnReadStore
      */
-    public abstract void prepare(ColumnReadStore readStore);
+    abstract void prepare(ColumnReadStore readStore);
 
-    public abstract long getTotalValueCount();
+    abstract long getTotalValueCount();
 }

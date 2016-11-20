@@ -17,7 +17,7 @@ class RelMock extends RowSourceSimple {
     private final Class<?> type;
     private final Object[] rows;
 
-    public RelMock(RelDataType relType, Class<?> type, Object[] rows) {
+    RelMock(RelDataType relType, Class<?> type, Object[] rows) {
         super(FrameDescriptorPart.root(relType.getFieldCount()));
 
         this.relType = relType;

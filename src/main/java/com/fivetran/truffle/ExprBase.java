@@ -17,17 +17,17 @@ abstract class ExprBase extends Node {
      * @param frame One row of data. Each FrameSlot corresponds to one column.
      * @return Result of evaluating the expression
      */
-    public abstract Object executeGeneric(VirtualFrame frame);
+    abstract Object executeGeneric(VirtualFrame frame);
 
-    public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
+    boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
         return SqlTypesGen.expectBoolean(executeGeneric(frame));
     }
 
-    public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
+    long executeLong(VirtualFrame frame) throws UnexpectedResultException {
         return SqlTypesGen.expectLong(executeGeneric(frame));
     }
 
-    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+    double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
         return SqlTypesGen.expectDouble(executeGeneric(frame));
     }
 

@@ -8,7 +8,7 @@ import org.apache.calcite.rel.RelNode;
  * Calling convention is a Calcite concept; Calcite produces a logical query plan (for example LogicalProject)
  * which we convert into a physical query plan (for example PhysicalProject).
  */
-public interface PhysicalRel extends RelNode {
+interface PhysicalRel extends RelNode {
     /**
      * Compile into an executable Truffle expression
      */

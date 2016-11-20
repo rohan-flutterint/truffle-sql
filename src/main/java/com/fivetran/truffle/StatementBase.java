@@ -12,6 +12,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(description = "The abstract base node for all statements")
 abstract class StatementBase extends Node {
 
-    public abstract void executeVoid(VirtualFrame frame);
+    abstract void executeVoid(VirtualFrame frame);
 
 }

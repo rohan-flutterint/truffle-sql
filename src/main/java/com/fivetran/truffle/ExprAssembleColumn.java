@@ -15,7 +15,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
     private ColumnReader reader;
     private final int maxDefinitionLevel;
 
-    public ExprAssembleColumn(MessageType root, String[] path) {
+    protected ExprAssembleColumn(MessageType root, String[] path) {
         this.type = (PrimitiveType) root.getType(path);
         this.column = root.getColumnDescription(path);
         this.maxDefinitionLevel = root.getMaxDefinitionLevel(path);
@@ -23,13 +23,13 @@ abstract class ExprAssembleColumn extends ExprAssemble {
 
     @Override
     @TruffleBoundary
-    public void prepare(ColumnReadStore readStore) {
+    protected void prepare(ColumnReadStore readStore) {
         this.reader = readStore.getColumnReader(column);
     }
 
     @Override
     @TruffleBoundary
-    public long getTotalValueCount() {
+    protected long getTotalValueCount() {
         return reader.getTotalValueCount();
     }
 
@@ -37,7 +37,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isBoolean()"})
-    public boolean getBoolean() {
+    protected boolean getBoolean() {
         return doGetBoolean(reader);
     }
 
@@ -50,7 +50,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isBoolean()", rewriteOn = NotDefinedException.class)
-    public boolean tryGetBoolean() {
+    protected boolean tryGetBoolean() {
         if (isNull(reader))
             throw new NotDefinedException();
         else
@@ -70,7 +70,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isBoolean()"})
-    public Object getNullableBoolean() {
+    protected Object getNullableBoolean() {
         if (isNull(reader))
             return doGetNull(reader);
         else
@@ -81,7 +81,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isDouble()"})
-    public double getDouble() {
+    protected double getDouble() {
         return doGetDouble(reader);
     }
 
@@ -100,7 +100,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isDouble()", rewriteOn = NotDefinedException.class)
-    public double tryGetDouble() {
+    protected double tryGetDouble() {
         if (isNull(reader))
             throw new NotDefinedException();
         else
@@ -120,7 +120,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isDouble()"})
-    public Object getNullableDouble() {
+    protected Object getNullableDouble() {
         if (isNull(reader))
             return doGetNull(reader);
         else
@@ -131,7 +131,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isLong()"})
-    public long getLong() {
+    protected long getLong() {
         return doGetLong(reader);
     }
 
@@ -159,7 +159,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isLong()", rewriteOn = NotDefinedException.class)
-    public long tryGetLong() {
+    protected long tryGetLong() {
         if (isNull(reader))
             throw new NotDefinedException();
         else
@@ -170,7 +170,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isLong()"})
-    public Object getNullableLong() {
+    protected Object getNullableLong() {
         if (isNull(reader))
             return doGetNull(reader);
         else
@@ -181,7 +181,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isString()"})
-    public Object getNullableString() {
+    protected Object getNullableString() {
         if (isNull(reader))
             return doGetNull(reader);
         else

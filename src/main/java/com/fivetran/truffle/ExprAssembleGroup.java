@@ -35,7 +35,7 @@ class ExprAssembleGroup extends ExprAssemble {
      */
     private Shape shape;
 
-    public ExprAssembleGroup(MessageType root, String[] path) {
+    ExprAssembleGroup(MessageType root, String[] path) {
         this.type = (GroupType) root.getType(path);
         this.columns = root.getColumns()
                 .stream()
@@ -47,14 +47,14 @@ class ExprAssembleGroup extends ExprAssemble {
 
     @Override
     @TruffleBoundary
-    public void prepare(ColumnReadStore readStore) {
+    void prepare(ColumnReadStore readStore) {
         for (int i = 0; i < columns.length; i++)
             readers[i] = readStore.getColumnReader(columns[i]);
     }
 
     @Override
     @TruffleBoundary
-    public long getTotalValueCount() {
+    long getTotalValueCount() {
         long max = 0;
 
         for (ColumnReader reader : readers) {
@@ -65,11 +65,11 @@ class ExprAssembleGroup extends ExprAssemble {
         return max;
     }
 
-    public DynamicObject executeGeneric(VirtualFrame frame) {
+    DynamicObject executeGeneric(VirtualFrame frame) {
         throw new UnsupportedOperationException(); // TODO
     }
 
-    public Shape defineProperty(Shape oldShape, Object name, Object value) {
+    Shape defineProperty(Shape oldShape, Object name, Object value) {
         assert shape.isRelated(oldShape);
 
         shape = shape.defineProperty(name, value, 0);

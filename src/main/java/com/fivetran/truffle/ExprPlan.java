@@ -8,10 +8,10 @@ import org.apache.calcite.rel.RelRoot;
  * This pseudo-node simply holds the query plan so we can pass it as the "context" parameter to {@link TruffleSqlLanguage#parse}
  */
 class ExprPlan extends Node {
-    public final RelRoot plan;
-    public final LazyRowSink then;
+    final RelRoot plan;
+    final LazyRowSink then;
 
-    public ExprPlan(RelRoot plan, LazyRowSink then) {
+    ExprPlan(RelRoot plan, LazyRowSink then) {
         this.plan = plan;
         this.then = then;
     }

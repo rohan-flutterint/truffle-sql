@@ -9,5 +9,5 @@ import com.oracle.truffle.api.nodes.Node;
  * Could transform rows, send them back to the user, or write them to a file somewhere.
  */
 abstract class RowSink extends Node implements LateBind {
-    public abstract void executeVoid(VirtualFrame frame);
+    abstract void executeVoid(VirtualFrame frame);
 }

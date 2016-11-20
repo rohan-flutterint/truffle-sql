@@ -6,7 +6,7 @@ abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Boolean(boolean value) {
         return new ExprLiteral() {
             @Override
-            public Object executeGeneric(VirtualFrame frame) {
+            Object executeGeneric(VirtualFrame frame) {
                 return value;
             }
 
@@ -16,7 +16,7 @@ abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Long(long value) {
         return new ExprLiteral() {
             @Override
-            public Object executeGeneric(VirtualFrame frame) {
+            Object executeGeneric(VirtualFrame frame) {
                 return value;
             }
 
@@ -26,7 +26,7 @@ abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Double(double value) {
         return new ExprLiteral() {
             @Override
-            public Object executeGeneric(VirtualFrame frame) {
+            Object executeGeneric(VirtualFrame frame) {
                 return value;
             }
 
@@ -36,7 +36,7 @@ abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Object(Object value) {
         return new ExprLiteral() {
             @Override
-            public Object executeGeneric(VirtualFrame frame) {
+            Object executeGeneric(VirtualFrame frame) {
                 return value;
             }
 
@@ -46,7 +46,7 @@ abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Null() {
         return new ExprLiteral() {
             @Override
-            public Object executeGeneric(VirtualFrame frame) {
+            Object executeGeneric(VirtualFrame frame) {
                 return SqlNull.INSTANCE;
             }
 

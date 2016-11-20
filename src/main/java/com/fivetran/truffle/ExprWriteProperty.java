@@ -32,12 +32,12 @@ abstract class ExprWriteProperty extends StatementBase {
      */
     protected String name;
 
-    public ExprWriteProperty(ExprAssembleGroup parent, String name) {
+    ExprWriteProperty(ExprAssembleGroup parent, String name) {
         this.parent = parent;
         this.name = name;
     }
 
-    public abstract void executeWrite(VirtualFrame frame, Object receiver, Object value);
+    abstract void executeWrite(VirtualFrame frame, Object receiver, Object value);
 
     /**
      * Polymorphic inline cache for writing a property that already exists (no shape change is necessary)

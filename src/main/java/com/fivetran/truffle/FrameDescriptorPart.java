@@ -20,21 +20,21 @@ class FrameDescriptorPart {
     /**
      * The underyling frame, which includes all the slots
      */
-    public FrameDescriptor frame() {
+    FrameDescriptor frame() {
         return frame;
     }
 
     /**
      * The start of the part of the frame we are using
      */
-    public int startOffset() {
+    int startOffset() {
         return startOffset;
     }
 
     /**
      * The number of slots we are using
      */
-    public int size() {
+    int size() {
         return size;
     }
 
@@ -47,14 +47,14 @@ class FrameDescriptorPart {
         return new FrameDescriptorPart(frame, 0, slots);
     }
 
-    public FrameDescriptorPart push(int slots) {
+    FrameDescriptorPart push(int slots) {
         for (int i = startOffset + size; i < startOffset + size + slots; i++)
             frame.addFrameSlot(i);
 
         return new FrameDescriptorPart(frame, startOffset + size, slots);
     }
 
-    public FrameSlot findFrameSlot(int index) {
+    FrameSlot findFrameSlot(int index) {
         return frame().findFrameSlot(startOffset + index);
     }
 }
