@@ -56,19 +56,6 @@ class ExprAssembleGroup extends ExprAssemble {
             readers[i] = readStore.getColumnReader(columns[i]);
     }
 
-    @Override
-    @TruffleBoundary
-    long getTotalValueCount() {
-        long max = 0;
-
-        for (ColumnReader reader : readers) {
-            if (reader.getTotalValueCount() > max)
-                max = reader.getTotalValueCount();
-        }
-
-        return max;
-    }
-
     DynamicObject executeGeneric(VirtualFrame frame) {
         throw new UnsupportedOperationException(); // TODO
     }

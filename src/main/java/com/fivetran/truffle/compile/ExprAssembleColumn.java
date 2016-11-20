@@ -30,12 +30,6 @@ abstract class ExprAssembleColumn extends ExprAssemble {
         this.reader = readStore.getColumnReader(column);
     }
 
-    @Override
-    @TruffleBoundary
-    protected long getTotalValueCount() {
-        return reader.getTotalValueCount();
-    }
-
     /**
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
