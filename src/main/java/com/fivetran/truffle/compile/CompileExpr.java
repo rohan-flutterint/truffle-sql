@@ -123,7 +123,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case ROW:
                 throw new UnsupportedOperationException();
             case CAST:
-                throw new UnsupportedOperationException();
+                return ExprCastNodeGen.create(call.getType(), compile(singleOperand(call.getOperands())));
             case FLOOR:
                 throw new UnsupportedOperationException();
             case CEIL:
@@ -196,8 +196,13 @@ class CompileExpr implements RexVisitor<ExprBase> {
         if (offset == operands.size() - 1)
             return compile(operands.get(offset));
         // WHEN ? THEN ? ELSE ...
-        else
-            return new ExprIf(compile(operands.get(offset)), compile(operands.get(offset + 1)), compileCase(operands, offset + 2));
+        else {
+            ExprTest ifNode = ExprTestNodeGen.create(compile(operands.get(offset)));
+            ExprBase thenNode = compile(operands.get(offset + 1));
+            ExprBase elseNode = compileCase(operands, offset + 2);
+
+            return new ExprIf(ifNode, thenNode, elseNode);
+        }
     }
 
     private ExprBase compile(RexNode rexNode) {

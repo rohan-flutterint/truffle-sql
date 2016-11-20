@@ -11,9 +11,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  */
 class ExprIf extends ExprBase {
     @Child
-    protected ExprBase conditionNode, thenPartNode, elsePartNode;
+    protected ExprTest conditionNode;
+    @Child
+    protected ExprBase thenPartNode, elsePartNode;
 
-    ExprIf(ExprBase conditionNode, ExprBase thenPartNode, ExprBase elsePartNode) {
+    ExprIf(ExprTest conditionNode, ExprBase thenPartNode, ExprBase elsePartNode) {
         this.conditionNode = conditionNode;
         this.thenPartNode = thenPartNode;
         this.elsePartNode = elsePartNode;

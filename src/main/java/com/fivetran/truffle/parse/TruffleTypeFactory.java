@@ -4,6 +4,7 @@ import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelRecordType;
 import org.apache.calcite.rel.type.StructKind;
+import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.lang.reflect.Type;
 
@@ -13,6 +14,10 @@ import java.lang.reflect.Type;
 public class TruffleTypeFactory extends JavaTypeFactoryImpl {
     @Override
     public RelDataType createType(Type type) {
+        // ANY type
+        if (type == Object.class)
+            return createSqlType(SqlTypeName.ANY);
+
         RelDataType result = super.createType(type);
 
         // Allow unqualified nested field references like SELECT nested.x.y FROM foo

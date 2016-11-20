@@ -125,6 +125,7 @@ public class Types {
             case NULL:
                 return SqlNull.INSTANCE;
             case ANY:
+                return value;
             case SYMBOL:
             case MULTISET:
             case ARRAY:

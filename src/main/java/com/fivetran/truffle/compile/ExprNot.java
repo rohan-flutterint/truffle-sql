@@ -11,12 +11,7 @@ abstract class ExprNot extends ExprBase {
     }
 
     @Specialization
-    SqlNull executeNull(SqlNull value) {
+    SqlNull executeNull(Object any) {
         return SqlNull.INSTANCE;
-    }
-
-    @Specialization
-    boolean executeGeneric(Object value) {
-        return false;
     }
 }
