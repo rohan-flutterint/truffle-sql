@@ -9,6 +9,9 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 
+/**
+ * Reads a primitive field.
+ */
 abstract class ExprAssembleColumn extends ExprAssemble {
     private final PrimitiveType type;
     private final ColumnDescriptor column;

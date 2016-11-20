@@ -9,6 +9,12 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Compiles RexNode into ExprBase.
+ * RexNode is Calcites representations of expressions like a+b, DATE_PART(...)
+ * ExprBase is our representation of an executable expression:
+ * an ExprBase reads column values from VirtualFrame and produces a value.
+ */
 class CompileExpr implements RexVisitor<ExprBase> {
     /**
      * FROM clause of SQL query.

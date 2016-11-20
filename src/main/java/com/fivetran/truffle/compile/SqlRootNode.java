@@ -5,6 +5,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
+/**
+ * Wraps a RowSource so we can call Truffle.getRuntime().createCallTarget(RootNode)
+ */
 class SqlRootNode extends RootNode {
     @Child
     private RowSource delegate;

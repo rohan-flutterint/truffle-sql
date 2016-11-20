@@ -13,6 +13,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 
+/**
+ * Mock table used in testing expressions like SELECT * FROM TABLE(mock())
+ */
 public class RelMock extends RowSourceSimple {
     private final RelDataType relType;
     private final Class<?> type;

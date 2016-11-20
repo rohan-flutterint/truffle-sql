@@ -10,12 +10,17 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataType;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.function.Consumer;
 
+/**
+ * Main entry point of Truffle-SQL implementation.
+ */
 @TruffleLanguage.Registration(name = "SQL", version = "0.1", mimeType = TruffleSqlLanguage.MIME_TYPE)
 public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
     public static final String MIME_TYPE = "application/x-sql";
@@ -107,5 +112,25 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         SqlRootNode root = new SqlRootNode(sourceSection, compiled);
 
         return Truffle.getRuntime().createCallTarget(root);
+    }
+
+    public static void callWithRootContext(CallTarget main) {
+        try {
+            Objects.requireNonNull(main, "Program is null");
+
+            PolyglotEngine engine = PolyglotEngine.newBuilder()
+                    .setIn(System.in)
+                    .setOut(System.out)
+                    .setErr(System.err)
+                    .build();
+            TruffleSqlContext context = (TruffleSqlContext) engine.getLanguages()
+                    .get(MIME_TYPE)
+                    .getGlobalObject()
+                    .get();
+
+            main.call(context);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

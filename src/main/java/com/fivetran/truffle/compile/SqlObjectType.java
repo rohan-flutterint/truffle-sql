@@ -5,6 +5,9 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 
+/**
+ * Defines the `ObjectType` of any `DynamicObject` we create from Truffle-SQL, for example to represent a nested field.
+ */
 class SqlObjectType extends ObjectType {
 
     public static final ObjectType INSTANCE = new SqlObjectType();

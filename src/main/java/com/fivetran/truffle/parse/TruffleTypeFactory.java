@@ -7,6 +7,9 @@ import org.apache.calcite.rel.type.StructKind;
 
 import java.lang.reflect.Type;
 
+/**
+ * Customizes the Calcite type system.
+ */
 public class TruffleTypeFactory extends JavaTypeFactoryImpl {
     @Override
     public RelDataType createType(Type type) {

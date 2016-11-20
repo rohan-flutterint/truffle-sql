@@ -14,6 +14,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
+ * A parquet file that can be read and sent to a SQL query
  */
 public class RelParquet extends RowSourceSimple {
     /**

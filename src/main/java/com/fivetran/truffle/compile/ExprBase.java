@@ -8,7 +8,6 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
  * Base of all SQL expressions.
- * The current row is in the FrameSlot's in VirtualFrame.
  */
 @TypeSystemReference(SqlTypes.class)
 @NodeInfo(description = "The abstract base node for all expressions")

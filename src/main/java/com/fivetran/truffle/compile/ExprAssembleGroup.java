@@ -11,6 +11,9 @@ import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 
+/**
+ * Assembles nested fields into a DynamicObject
+ */
 class ExprAssembleGroup extends ExprAssemble {
     /**
      * Type that we are assembling

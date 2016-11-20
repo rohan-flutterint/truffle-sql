@@ -1,11 +1,9 @@
 package com.fivetran.truffle.parse;
 
-import com.fivetran.truffle.compile.TruffleSqlContext;
 import com.fivetran.truffle.compile.TruffleSqlLanguage;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.*;
 import org.apache.calcite.avatica.remote.TypedValue;
@@ -44,15 +42,20 @@ import org.apache.calcite.tools.Program;
 import org.apache.calcite.tools.Programs;
 import org.apache.calcite.util.Util;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Main entry point for Calcite. Teaches calcite how to connect to jdbc:truffle//... URIs
+ */
 public class TruffleMeta extends MetaImpl {
 
     /**
@@ -65,26 +68,6 @@ public class TruffleMeta extends MetaImpl {
 
     public TruffleMeta(AvaticaConnection connection) {
         super(connection);
-    }
-
-    public static void callWithRootContext(CallTarget main) {
-        try {
-            Objects.requireNonNull(main, "Program is null");
-
-            PolyglotEngine engine = PolyglotEngine.newBuilder()
-                    .setIn(System.in)
-                    .setOut(System.out)
-                    .setErr(System.err)
-                    .build();
-            TruffleSqlContext context = (TruffleSqlContext) engine.getLanguages()
-                    .get(TruffleSqlLanguage.MIME_TYPE)
-                    .getGlobalObject()
-                    .get();
-
-            main.call(context);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -312,7 +295,7 @@ public class TruffleMeta extends MetaImpl {
         // Compile the query plan into a Truffle program
         CallTarget program = TruffleSqlLanguage.INSTANCE.compileInteractiveQuery(plan, results::add);
 
-        callWithRootContext(program);
+        TruffleSqlLanguage.callWithRootContext(program);
 
         // Stash the list so fetch(StatementHandle) can get it
         runningQueries.put(handle, new Running(results, plan.validatedRowType));
