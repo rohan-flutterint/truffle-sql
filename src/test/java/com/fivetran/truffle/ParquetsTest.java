@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import com.fivetran.truffle.parse.TruffleTypeFactory;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.StructKind;
 import org.apache.parquet.schema.GroupType;

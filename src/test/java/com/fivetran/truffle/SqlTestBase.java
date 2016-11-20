@@ -1,5 +1,9 @@
 package com.fivetran.truffle;
 
+import com.fivetran.truffle.parse.MockTable;
+import com.fivetran.truffle.parse.ParquetTable;
+import com.fivetran.truffle.parse.TruffleDriver;
+import com.fivetran.truffle.parse.TruffleMeta;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.FunctionParameter;

@@ -34,10 +34,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-class Parquets {
+public class Parquets {
     private static final Configuration conf = new Configuration();
 
-    static ColumnReadStore columns(URI fromFile, MessageType schema, Footer footer) {
+    public static ColumnReadStore columns(URI fromFile, MessageType schema, Footer footer) {
         try {
             List<BlockMetaData> filteredBlocks = blockMetaData(footer);
 
@@ -62,7 +62,7 @@ class Parquets {
         }
     }
 
-    static List<BlockMetaData> blockMetaData(Footer footer) {
+    public static List<BlockMetaData> blockMetaData(Footer footer) {
         // Determine which blocks to read
         List<BlockMetaData> blocks = footer.getParquetMetadata().getBlocks();
         MessageType fileSchema = footer.getParquetMetadata().getFileMetaData().getSchema();
@@ -70,7 +70,7 @@ class Parquets {
         return RowGroupFilter.filterRowGroups(FilterCompat.NOOP, blocks, fileSchema);
     }
 
-    static List<Footer> footers(URI fromFile) {
+    public static List<Footer> footers(URI fromFile) {
         try {
             Path file = new Path(fromFile);
             FileSystem fs = file.getFileSystem(conf);
@@ -82,7 +82,7 @@ class Parquets {
         }
     }
 
-    static RelDataType sqlType(Type parquetType, RelDataTypeFactory typeFactory) {
+    public static RelDataType sqlType(Type parquetType, RelDataTypeFactory typeFactory) {
         return doSqlType(parquetType, typeFactory, true);
     }
 
@@ -126,18 +126,18 @@ class Parquets {
         }
     }
 
-    static Shape shape(GroupType schema) {
+    public static Shape shape(GroupType schema) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Same as {@link Parquets#shape(GroupType)}, but optimistically assumes all fields will never be null.
      */
-    static Shape shapeOptimistic(GroupType schema) {
+    public static Shape shapeOptimistic(GroupType schema) {
         throw new UnsupportedOperationException();
     }
 
-    static boolean containsPath(String[] parent, String[] child) {
+    public static boolean containsPath(String[] parent, String[] child) {
         if (parent.length > child.length)
             return false;
 

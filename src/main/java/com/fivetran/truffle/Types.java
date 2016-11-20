@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import com.fivetran.truffle.compile.SqlNull;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.rel.type.RelDataType;
@@ -18,7 +19,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 
-class Types {
+public class Types {
 
 //    /**
 //     * Describe the stack frame we will use to represent a relation
@@ -39,7 +40,7 @@ class Types {
     /**
      * What type of slot do we need to represent a non-nullable value of a type?
      */
-    static FrameSlotKind kind(SqlTypeName type) {
+    public static FrameSlotKind kind(SqlTypeName type) {
         switch (type) {
             case BOOLEAN:
                 return FrameSlotKind.Boolean;
@@ -61,7 +62,7 @@ class Types {
     /**
      * Convert a SQL literal to a runtime value
      */
-    static Object coerceLiteral(RexLiteral literal) {
+    public static Object coerceLiteral(RexLiteral literal) {
         if (RexLiteral.isNullLiteral(literal))
             return SqlNull.INSTANCE;
 
@@ -75,7 +76,7 @@ class Types {
      * Coerce value from any reasonable representation to our internal representation of type.
      * Not fast! Suitable for things like literals, mocks that are executed infrequently.
      */
-    static Object coerceAny(Object value, RelDataType type) {
+    public static Object coerceAny(Object value, RelDataType type) {
         if (value == null)
             return SqlNull.INSTANCE;
 
@@ -143,7 +144,7 @@ class Types {
     /**
      * Simplify calcite's type system into the types we actually implement at runtime.
      */
-    static RelDataType simplify(RelDataType type) {
+    public static RelDataType simplify(RelDataType type) {
         switch (kind(type.getSqlTypeName())) {
             case Long:
             case Int:
@@ -164,7 +165,7 @@ class Types {
     /**
      * Convert our internal representation to the one Avatica is looking for.
      */
-    static Object resultSet(Object value, RelDataType type) {
+    public static Object resultSet(Object value, RelDataType type) {
         if (value == SqlNull.INSTANCE)
             return null;
 
