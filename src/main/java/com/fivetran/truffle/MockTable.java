@@ -26,6 +26,6 @@ class MockTable extends AbstractTable implements TranslatableTable {
 
     @Override
     public RelNode toRel(RelOptTable.ToRelContext context, RelOptTable table) {
-        return new TMock(context.getCluster(), context.getCluster().traitSet().replace(TRel.CONVENTION), table, type, rows);
+        return new PhysicalMock(context.getCluster(), context.getCluster().traitSet().replace(PhysicalRel.CONVENTION), table, type, rows);
     }
 }

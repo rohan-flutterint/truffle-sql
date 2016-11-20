@@ -16,7 +16,7 @@ import java.net.URI;
 /**
  * Scans a parquet-format file.
  */
-public class TParquet extends TableScan implements TRel {
+public class PhysicalParquet extends TableScan implements PhysicalRel {
 
     /**
      * Location of the file. Could be a local file, S3.
@@ -29,14 +29,14 @@ public class TParquet extends TableScan implements TRel {
      */
     final MessageType schema;
 
-    TParquet(RelOptCluster cluster,
-             RelTraitSet traitSet,
-             RelOptTable table,
-             URI file,
-             MessageType schema) {
+    PhysicalParquet(RelOptCluster cluster,
+                    RelTraitSet traitSet,
+                    RelOptTable table,
+                    URI file,
+                    MessageType schema) {
         super(cluster, traitSet, table);
 
-        assert getConvention() == TRel.CONVENTION;
+        assert getConvention() == PhysicalRel.CONVENTION;
 
         this.file = file;
         this.schema = schema;
@@ -88,9 +88,9 @@ public class TParquet extends TableScan implements TRel {
         return new RelParquet(file, schema);
     }
 
-    public TParquet withProject(MessageType project) {
+    public PhysicalParquet withProject(MessageType project) {
         // TODO check project <: schema
-        TParquet result = new TParquet(getCluster(), traitSet, table, file, project);
+        PhysicalParquet result = new PhysicalParquet(getCluster(), traitSet, table, file, project);
 
         result.deriveRowType();
 

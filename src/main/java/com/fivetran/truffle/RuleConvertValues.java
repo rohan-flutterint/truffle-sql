@@ -10,12 +10,12 @@ public class RuleConvertValues extends RuleConvert<LogicalValues> {
     }
 
     @Override
-    protected TRel doConvert(LogicalValues values) {
-        return new TValues(
+    protected PhysicalRel doConvert(LogicalValues values) {
+        return new PhysicalValues(
                 values.getCluster(),
                 values.getRowType(),
                 values.getTuples(),
-                values.getTraitSet().replace(TRel.CONVENTION)
+                values.getTraitSet().replace(PhysicalRel.CONVENTION)
         );
     }
 }

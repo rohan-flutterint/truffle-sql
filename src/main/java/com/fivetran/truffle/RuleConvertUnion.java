@@ -14,15 +14,15 @@ public class RuleConvertUnion extends RuleConvert<LogicalUnion> {
     }
     
     @Override
-    protected TRel doConvert(LogicalUnion union) {
+    protected PhysicalRel doConvert(LogicalUnion union) {
         List<RelNode> inputs = union.getInputs()
                 .stream()
-                .map(i -> convert(i, TRel.CONVENTION))
+                .map(i -> convert(i, PhysicalRel.CONVENTION))
                 .collect(Collectors.toList());
 
-        return new TUnion(
+        return new PhysicalUnion(
                 union.getCluster(),
-                union.getTraitSet().replace(TRel.CONVENTION),
+                union.getTraitSet().replace(PhysicalRel.CONVENTION),
                 inputs,
                 union.all
         );

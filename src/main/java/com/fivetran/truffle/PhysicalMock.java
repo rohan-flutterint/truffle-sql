@@ -4,14 +4,14 @@ import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 
-class TMock extends TableScan implements TRel {
+class PhysicalMock extends TableScan implements PhysicalRel {
     public final Class<?> type;
     public final Object[] rows;
 
-    public TMock(RelOptCluster cluster, RelTraitSet relTraits, RelOptTable table, Class<?> type, Object[] rows) {
+    public PhysicalMock(RelOptCluster cluster, RelTraitSet relTraits, RelOptTable table, Class<?> type, Object[] rows) {
         super(cluster, relTraits, table);
 
-        assert getConvention() == TRel.CONVENTION;
+        assert getConvention() == PhysicalRel.CONVENTION;
 
         this.type = type;
         this.rows = rows;

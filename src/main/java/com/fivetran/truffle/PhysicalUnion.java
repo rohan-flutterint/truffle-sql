@@ -8,30 +8,30 @@ import org.apache.calcite.rel.core.Union;
 
 import java.util.List;
 
-public class TUnion extends Union implements TRel {
-    protected TUnion(RelOptCluster cluster,
-                     RelTraitSet traits,
-                     List<RelNode> inputs,
-                     boolean all) {
+public class PhysicalUnion extends Union implements PhysicalRel {
+    protected PhysicalUnion(RelOptCluster cluster,
+                            RelTraitSet traits,
+                            List<RelNode> inputs,
+                            boolean all) {
         super(cluster, traits, inputs, all);
 
         for (RelNode each : inputs) {
-            assert each.getConvention() == TRel.CONVENTION;
+            assert each.getConvention() == PhysicalRel.CONVENTION;
         }
     }
 
     @Override
     public SetOp copy(RelTraitSet traitSet, List<RelNode> inputs, boolean all) {
-        assert traitSet.containsIfApplicable(TRel.CONVENTION);
+        assert traitSet.containsIfApplicable(PhysicalRel.CONVENTION);
 
-        return new TUnion(getCluster(), traitSet, inputs, all);
+        return new PhysicalUnion(getCluster(), traitSet, inputs, all);
     }
 
     @Override
     public RowSource compile() {
         RowSource[] sources = getInputs()
                 .stream()
-                .map(i -> ((TRel) i).compile())
+                .map(i -> ((PhysicalRel) i).compile())
                 .toArray(RowSource[]::new);
 
         return new RelUnion(sources);

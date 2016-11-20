@@ -14,13 +14,13 @@ public class RuleProjectParquet extends RelOptRule {
     public static final RuleProjectParquet INSTANCE = new RuleProjectParquet();
 
     private RuleProjectParquet() {
-        super(operand(TProject.class, operand(TParquet.class, none())), RuleProjectParquet.class.getSimpleName());
+        super(operand(PhysicalProject.class, operand(PhysicalParquet.class, none())), RuleProjectParquet.class.getSimpleName());
     }
 
     @Override
     public void onMatch(RelOptRuleCall call) {
-        TProject project = call.rel(0);
-        TParquet scan = call.rel(1);
+        PhysicalProject project = call.rel(0);
+        PhysicalParquet scan = call.rel(1);
         MessageType smallerType = messageType(scan.schema, project);
 
         // When the query contains an expression like SELECT a+1 FROM tbl, onMatch gets called multiple times
@@ -31,7 +31,7 @@ public class RuleProjectParquet extends RelOptRule {
         // The second time it has the expressions, for example SELECT a+1 FROM tbl[a]
         // There's nothing more we can do with expressions, so we do nothing
         if (smallerType != null) {
-            TParquet pushdown = scan.withProject(smallerType);
+            PhysicalParquet pushdown = scan.withProject(smallerType);
 
             call.transformTo(pushdown);
         }

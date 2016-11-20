@@ -263,7 +263,7 @@ class TruffleMeta extends MetaImpl {
         // program.setExecutor(?) ??
 
         RelTraitSet traits = root.rel.getTraitSet()
-                .replace(TRel.CONVENTION)
+                .replace(PhysicalRel.CONVENTION)
                 .replace(root.collation)
                 .simplify();
 

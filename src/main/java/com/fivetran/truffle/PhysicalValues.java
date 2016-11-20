@@ -10,11 +10,11 @@ import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLiteral;
 
-public class TValues extends Values implements TRel {
-    protected TValues(RelOptCluster cluster,
-                      RelDataType rowType,
-                      ImmutableList<ImmutableList<RexLiteral>> tuples,
-                      RelTraitSet traits) {
+public class PhysicalValues extends Values implements PhysicalRel {
+    protected PhysicalValues(RelOptCluster cluster,
+                             RelDataType rowType,
+                             ImmutableList<ImmutableList<RexLiteral>> tuples,
+                             RelTraitSet traits) {
         super(cluster, rowType, tuples, traits);
     }
 

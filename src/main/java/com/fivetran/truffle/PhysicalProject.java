@@ -12,21 +12,21 @@ import org.apache.calcite.rex.RexNode;
 
 import java.util.List;
 
-public class TProject extends Project implements TRel {
-    TProject(RelOptCluster cluster,
-             RelTraitSet traits,
-             RelNode input,
-             List<? extends RexNode> projects,
-             RelDataType rowType) {
+public class PhysicalProject extends Project implements PhysicalRel {
+    PhysicalProject(RelOptCluster cluster,
+                    RelTraitSet traits,
+                    RelNode input,
+                    List<? extends RexNode> projects,
+                    RelDataType rowType) {
         super(cluster, traits, input, projects, rowType);
 
-        assert getConvention() == TRel.CONVENTION;
+        assert getConvention() == PhysicalRel.CONVENTION;
         assert getConvention() == input.getConvention();
     }
 
     @Override
     public Project copy(RelTraitSet traitSet, RelNode input, List<RexNode> projects, RelDataType rowType) {
-        return new TProject(getCluster(), traitSet, input, projects, rowType);
+        return new PhysicalProject(getCluster(), traitSet, input, projects, rowType);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class TProject extends Project implements TRel {
         if (getInputs().isEmpty())
             compiled = new RelEmpty();
         else {
-            TRel input = (TRel) getInputs().get(0);
+            PhysicalRel input = (PhysicalRel) getInputs().get(0);
 
             compiled = input.compile();
         }

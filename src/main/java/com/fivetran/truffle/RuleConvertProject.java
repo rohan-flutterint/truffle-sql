@@ -13,11 +13,11 @@ public class RuleConvertProject extends RuleConvert<LogicalProject> {
     }
 
     @Override
-    protected TRel doConvert(LogicalProject from) {
-        return new TProject(
+    protected PhysicalRel doConvert(LogicalProject from) {
+        return new PhysicalProject(
                 from.getCluster(),
-                from.getTraitSet().replace(TRel.CONVENTION),
-                convert(from.getInput(), TRel.CONVENTION),
+                from.getTraitSet().replace(PhysicalRel.CONVENTION),
+                convert(from.getInput(), PhysicalRel.CONVENTION),
                 from.getProjects(),
                 from.getRowType()
         );
