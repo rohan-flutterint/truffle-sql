@@ -4,6 +4,7 @@
 
 # Generated
 target
+classpath.txt
 
 # Binary
 graalvm
