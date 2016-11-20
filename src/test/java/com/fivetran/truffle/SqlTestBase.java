@@ -19,16 +19,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public abstract class SqlTestBase {
     @BeforeClass
     public static void registerDriver() throws ClassNotFoundException {
         // Causes driver to register itself
         Class.forName("com.fivetran.truffle.TruffleDriver");
+
+        // TODO this compensates for the fact that Avatica demands we convert Instant to long,
+        // then interprets that long as local-timezone
+        // We should fix that issue and then this won't be necessary
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
     protected static Object[] mockRows;
