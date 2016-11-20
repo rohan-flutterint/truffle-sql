@@ -8,6 +8,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.apache.parquet.column.ColumnReadStore;
 import org.apache.parquet.hadoop.Footer;
+import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.schema.MessageType;
 
 import java.net.URI;
@@ -62,17 +63,18 @@ public class RelParquet extends RowSourceSimple {
         VirtualFrame frame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, sourceFrame.frame());
 
         for (Footer footer : footers()) {
-            ColumnReadStore readStore = Parquets.columns(file, project, footer);
-
-            // Prepare to read rows
+            // Count rows
             long nRows = 0;
+
+            for (BlockMetaData each : footer.getParquetMetadata().getBlocks()) {
+                nRows += each.getRowCount();
+            }
+
+            // Install ColumnReadStore into each column reader
+            ColumnReadStore readStore = Parquets.columns(file, project, footer);
 
             for (ExprAssemble reader : readers) {
                 reader.prepare(readStore);
-
-                // TODO use BlockMetaData
-                if (nRows < reader.getTotalValueCount())
-                    nRows = reader.getTotalValueCount();
             }
 
             // Assemble each row
