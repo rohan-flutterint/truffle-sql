@@ -101,7 +101,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case BETWEEN:
                 throw new UnsupportedOperationException();
             case CASE:
-                throw new UnsupportedOperationException();
+                return compileCase(call.getOperands(), 0);
             case NULLIF:
                 throw new UnsupportedOperationException();
             case COALESCE:
@@ -183,6 +183,19 @@ class CompileExpr implements RexVisitor<ExprBase> {
             default:
                 throw new RuntimeException("Don't know what to do with " + call.getKind());
         }
+    }
+
+    private ExprBase compileCase(List<RexNode> operands, int offset) {
+        // ELSE ? END
+        if (offset == operands.size() - 1)
+            return compile(operands.get(offset));
+        // WHEN ? THEN ? ELSE ...
+        else
+            return new ExprIf(compile(operands.get(offset)), compile(operands.get(offset + 1)), compileCase(operands, offset + 2));
+    }
+
+    private ExprBase compile(RexNode rexNode) {
+        return rexNode.accept(new CompileExpr(from));
     }
 
     @FunctionalInterface

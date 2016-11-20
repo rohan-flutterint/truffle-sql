@@ -156,4 +156,13 @@ public class ExpressionTest extends SqlTestBase {
                 {null, null}
         }));
     }
+
+    @Test
+    public void caseWhen() throws SQLException {
+        List<Object[]> results = query("SELECT CASE 'foo' WHEN 'bar' THEN 1 WHEN 'foo' then 2 ELSE 0 END AS n");
+
+        assertThat(results, contains(new Object[][] {
+                {2L}
+        }));
+    }
 }
