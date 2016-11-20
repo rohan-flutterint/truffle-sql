@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 class RuleConvertUnion extends RuleConvert<LogicalUnion> {
-    public static RuleConvertUnion INSTANCE = new RuleConvertUnion();
+    static RuleConvertUnion INSTANCE = new RuleConvertUnion();
 
     private RuleConvertUnion() {
         super(LogicalUnion.class, RuleConvertUnion.class.getSimpleName());

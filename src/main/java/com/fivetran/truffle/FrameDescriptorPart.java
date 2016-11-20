@@ -38,7 +38,7 @@ class FrameDescriptorPart {
         return size;
     }
 
-    public static FrameDescriptorPart root(int slots) {
+    static FrameDescriptorPart root(int slots) {
         FrameDescriptor frame = new FrameDescriptor();
 
         for (int i = 0; i < slots; i++)

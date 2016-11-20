@@ -20,7 +20,7 @@ import java.util.Objects;
  * http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/36632.pdf.
  */
 class CompileParquet implements TypeVisitor {
-    public static ExprAssemble compile(MessageType parent, String[] path) {
+    static ExprAssemble compile(MessageType parent, String[] path) {
         CompileParquet compiler = new CompileParquet(parent, path);
 
         parent.getType(path).accept(compiler);

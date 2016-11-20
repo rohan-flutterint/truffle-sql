@@ -6,7 +6,7 @@ import org.apache.calcite.rel.logical.LogicalProject;
  * Replaces LogicalProject with TProject
  */
 class RuleConvertProject extends RuleConvert<LogicalProject> {
-    public static RuleConvertProject INSTANCE = new RuleConvertProject();
+    static RuleConvertProject INSTANCE = new RuleConvertProject();
 
     private RuleConvertProject() {
         super(LogicalProject.class, RuleConvertProject.class.getSimpleName());

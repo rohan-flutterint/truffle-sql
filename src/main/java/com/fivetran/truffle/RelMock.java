@@ -48,7 +48,7 @@ class RelMock extends RowSourceSimple {
         }
     }
 
-    public static void setSlot(VirtualFrame frame, FrameSlot slot, Object truffleValue) {
+    static void setSlot(VirtualFrame frame, FrameSlot slot, Object truffleValue) {
         Objects.requireNonNull(truffleValue);
 
         if (truffleValue == SqlNull.INSTANCE) {

@@ -137,7 +137,7 @@ class Parquets {
         throw new UnsupportedOperationException();
     }
 
-    public static boolean containsPath(String[] parent, String[] child) {
+    static boolean containsPath(String[] parent, String[] child) {
         if (parent.length > child.length)
             return false;
 

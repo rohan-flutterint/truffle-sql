@@ -11,7 +11,7 @@ import org.apache.parquet.schema.MessageType;
 import java.util.Objects;
 
 class RuleProjectParquet extends RelOptRule {
-    public static final RuleProjectParquet INSTANCE = new RuleProjectParquet();
+    static final RuleProjectParquet INSTANCE = new RuleProjectParquet();
 
     private RuleProjectParquet() {
         super(operand(PhysicalProject.class, operand(PhysicalParquet.class, none())), RuleProjectParquet.class.getSimpleName());
