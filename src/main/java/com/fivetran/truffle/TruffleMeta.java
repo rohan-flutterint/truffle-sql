@@ -242,7 +242,9 @@ class TruffleMeta extends MetaImpl {
 
         planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
 
-        planner.addRule(RuleReplaceLogicalProject.INSTANCE);
+        planner.addRule(RuleConvertProject.INSTANCE);
+        planner.addRule(RuleConvertUnion.INSTANCE);
+        planner.addRule(RuleConvertValues.INSTANCE);
 
         RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory()));
         SqlToRelConverter.Config config = SqlToRelConverter.configBuilder().withTrimUnusedFields(true).build();
@@ -260,13 +262,12 @@ class TruffleMeta extends MetaImpl {
 
         // program.setExecutor(?) ??
 
-        TRel physical = CompileLogical.compile(root.rel);
-
-        RelTraitSet traits = physical.getTraitSet()
+        RelTraitSet traits = root.rel.getTraitSet()
+                .replace(TRel.CONVENTION)
                 .replace(root.collation)
                 .simplify();
 
-        RelNode optimized = program.run(planner, physical, traits);
+        RelNode optimized = program.run(planner, root.rel, traits);
 
         return root.withRel(optimized);
     }
