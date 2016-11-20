@@ -79,7 +79,7 @@ public class TruffleMeta extends MetaImpl {
         return statement;
     }
 
-    private SqlNode parse(String sql) {
+    public static SqlNode parse(String sql) {
         try {
             SqlParser.Config config = SqlParser.configBuilder().setLex(Lex.JAVA).build();
             SqlParser parser = SqlParser.create(sql, config);
@@ -90,7 +90,7 @@ public class TruffleMeta extends MetaImpl {
         }
     }
 
-    private Signature validate(String query, SqlNode parsed) {
+    public static Signature validate(String query, SqlNode parsed) {
         SqlValidatorImpl validator = validator();
 
         // Validate the query
@@ -128,7 +128,7 @@ public class TruffleMeta extends MetaImpl {
         );
     }
 
-    private SqlValidatorImpl validator() {
+    private static SqlValidatorImpl validator() {
         return new SqlValidatorImpl(OPERATORS, catalogReader(), typeFactory(), SqlConformance.PRAGMATIC_2003) {
             // No overrides
         };
@@ -223,7 +223,7 @@ public class TruffleMeta extends MetaImpl {
         );
     }
 
-    private Prepare.CatalogReader catalogReader() {
+    private static Prepare.CatalogReader catalogReader() {
         JavaTypeFactory types = typeFactory();
         CalciteSchema rootSchema = CalciteSchema.createRootSchema(false);
 
@@ -234,11 +234,11 @@ public class TruffleMeta extends MetaImpl {
         return new TruffleTypeFactory();
     }
 
-    private RelRoot expandView(RelDataType rowType, String queryString, List<String> schemaPath, List<String> viewPath) {
+    private static RelRoot expandView(RelDataType rowType, String queryString, List<String> schemaPath, List<String> viewPath) {
         throw new UnsupportedOperationException();
     }
 
-    private RelRoot plan(SqlNode parsed) {
+    public static RelRoot plan(SqlNode parsed) {
         VolcanoPlanner planner = new VolcanoPlanner(null, new TrufflePlannerContext());
 
         planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
@@ -250,7 +250,7 @@ public class TruffleMeta extends MetaImpl {
         RelOptCluster cluster = RelOptCluster.create(planner, new RexBuilder(typeFactory()));
         SqlToRelConverter.Config config = SqlToRelConverter.configBuilder().withTrimUnusedFields(true).build();
         SqlToRelConverter converter = new SqlToRelConverter(
-                this::expandView,
+                TruffleMeta::expandView,
                 validator(),
                 catalogReader(),
                 cluster,

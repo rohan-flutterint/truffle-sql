@@ -1,5 +1,6 @@
-package com.fivetran.truffle.parse;
+package com.fivetran.truffle;
 
+import com.fivetran.truffle.parse.TruffleMeta;
 import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.DriverVersion;
 import org.apache.calcite.avatica.Meta;
@@ -15,10 +16,6 @@ public class TruffleDriver extends UnregisteredDriver {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void load() {
-        // Causes static section to be invoked
     }
 
     @Override

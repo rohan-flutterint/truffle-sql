@@ -2,7 +2,6 @@ package com.fivetran.truffle;
 
 import com.fivetran.truffle.parse.MockTable;
 import com.fivetran.truffle.parse.ParquetTable;
-import com.fivetran.truffle.parse.TruffleDriver;
 import com.fivetran.truffle.parse.TruffleMeta;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -16,7 +15,10 @@ import org.junit.After;
 import org.junit.BeforeClass;
 
 import java.net.URI;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,9 +26,9 @@ import java.util.Objects;
 
 public abstract class SqlTestBase {
     @BeforeClass
-    public static void registerDriver() {
+    public static void registerDriver() throws ClassNotFoundException {
         // Causes driver to register itself
-        TruffleDriver.load();
+        Class.forName("com.fivetran.truffle.TruffleDriver");
     }
 
     protected static Object[] mockRows;
@@ -107,13 +109,12 @@ public abstract class SqlTestBase {
 
         try (Connection conn = DriverManager.getConnection("jdbc:truffle://localhost:80")) {
             ResultSet r = conn.createStatement().executeQuery(sql);
-            ResultSetMetaData types = r.getMetaData();
-            int n = types.getColumnCount();
+            int nColumns = r.getMetaData().getColumnCount();
 
             while (r.next()) {
-                Object[] row = new Object[n];
+                Object[] row = new Object[nColumns];
 
-                for (int column = 0; column < n; column++) {
+                for (int column = 0; column < nColumns; column++) {
                     row[column] = r.getObject(column + 1);
                 }
 
@@ -121,6 +122,7 @@ public abstract class SqlTestBase {
             }
 
         }
+
         return results;
     }
 }
