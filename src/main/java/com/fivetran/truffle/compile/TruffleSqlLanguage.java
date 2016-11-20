@@ -10,6 +10,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataType;
 
 import java.io.IOException;
@@ -60,8 +61,14 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         throw new IllegalStateException("evalInContext not supported in SQL");
     }
 
-    public CallTarget compileInteractiveQuery(org.apache.calcite.rel.RelRoot plan,
-                                              Consumer<Object[]> then) {
+    /**
+     * Main entry point of compiler.
+     * Given a physical query plan from Calcite, produce an executable program.
+     *
+     * This implementation is optimized for sending `Object[]` results back to the user;
+     * query plans that produce intermediate results may want to call compile(RelRoot, LazyRowSink) for better performance.
+     */
+    public CallTarget compileInteractiveQuery(RelRoot plan, Consumer<Object[]> then) {
         LazyRowSink sink = resultFrame -> new RowSink() {
             @Override
             public void bind(LazyRowSink next) {
@@ -88,7 +95,7 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         return compile(plan, sink);
     }
 
-    private CallTarget compile(org.apache.calcite.rel.RelRoot plan, LazyRowSink sink) {
+    private CallTarget compile(RelRoot plan, LazyRowSink sink) {
         // Compile query into Truffle program
         PhysicalRel physical = (PhysicalRel) plan.rel;
         RowSource compiled = physical.compile();
@@ -97,7 +104,7 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
 
         // Make executable
         SourceSection sourceSection = SourceSection.createUnavailable("?", "Compiled query");
-        RelRoot root = new RelRoot(sourceSection, compiled);
+        SqlRootNode root = new SqlRootNode(sourceSection, compiled);
 
         return Truffle.getRuntime().createCallTarget(root);
     }
