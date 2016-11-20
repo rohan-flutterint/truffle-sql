@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,7 +21,9 @@ public class FileTest extends SqlTestBase {
                 {21L}
         }));
     }
+
     @Test
+    @Ignore
     public void nested() throws IOException, SQLException {
         List<Object[]> rows = query("SELECT docId, `name`.url FROM TABLE(file('" + documentPath() + "'))");
 

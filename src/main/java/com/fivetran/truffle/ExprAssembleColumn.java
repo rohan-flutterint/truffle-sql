@@ -59,7 +59,11 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
 
     @TruffleBoundary
     private static boolean doGetBoolean(ColumnReader reader) {
-        return reader.getBoolean();
+        boolean result = reader.getBoolean();
+
+        reader.consume();
+
+        return result;
     }
 
     /**
@@ -68,7 +72,7 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
     @Specialization(guards = {"isNullable()", "isBoolean()"})
     public Object getNullableBoolean() {
         if (isNull(reader))
-            return SqlNull.INSTANCE;
+            return doGetNull(reader);
         else
             return doGetBoolean(reader);
     }
@@ -105,7 +109,11 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
 
     @TruffleBoundary
     private static double doGetDouble(ColumnReader reader) {
-        return reader.getDouble();
+        double result = reader.getDouble();
+
+        reader.consume();
+
+        return result;
     }
 
     /**
@@ -114,7 +122,7 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
     @Specialization(guards = {"isNullable()", "isDouble()"})
     public Object getNullableDouble() {
         if (isNull(reader))
-            return SqlNull.INSTANCE;
+            return doGetNull(reader);
         else
             return doGetDouble(reader);
     }
@@ -129,7 +137,11 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
 
     @TruffleBoundary
     private static long doGetLong(ColumnReader reader) {
-        return reader.getLong();
+        long result = reader.getLong();
+
+        reader.consume();
+
+        return result;
     }
 
     protected boolean isLong() {
@@ -160,7 +172,7 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
     @Specialization(guards = {"isNullable()", "isLong()"})
     public Object getNullableLong() {
         if (isNull(reader))
-            return SqlNull.INSTANCE;
+            return doGetNull(reader);
         else
             return doGetLong(reader);
     }
@@ -171,14 +183,25 @@ public abstract class ExprAssembleColumn extends ExprAssemble {
     @Specialization(guards = {"isString()"})
     public Object getNullableString() {
         if (isNull(reader))
-            return SqlNull.INSTANCE;
+            return doGetNull(reader);
         else
             return doGetString(reader);
     }
 
     @TruffleBoundary
     private static String doGetString(ColumnReader reader) {
-        return reader.getBinary().toStringUsingUTF8();
+        String result = reader.getBinary().toStringUsingUTF8();
+
+        reader.consume();
+
+        return result;
+    }
+
+    @TruffleBoundary
+    private static SqlNull doGetNull(ColumnReader reader) {
+        reader.consume();
+
+        return SqlNull.INSTANCE;
     }
 
     protected boolean isString() {
