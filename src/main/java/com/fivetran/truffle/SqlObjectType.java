@@ -5,7 +5,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 
-public class SqlObjectType extends ObjectType {
+class SqlObjectType extends ObjectType {
 
     public static final ObjectType INSTANCE = new SqlObjectType();
 

@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
  * Based on SLReadLocalVariableNode
  */
 @NodeField(name = "slot", type = FrameSlot.class)
-public abstract class ExprReadLocal extends ExprBase {
+abstract class ExprReadLocal extends ExprBase {
     protected abstract FrameSlot getSlot();
 
     @Specialization(guards = "isBoolean(frame)")

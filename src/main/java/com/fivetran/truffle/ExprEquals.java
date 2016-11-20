@@ -7,7 +7,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import java.util.Objects;
 
 @NodeInfo(shortName = "=")
-public abstract class ExprEquals extends ExprBinary {
+abstract class ExprEquals extends ExprBinary {
 
 
     @Specialization

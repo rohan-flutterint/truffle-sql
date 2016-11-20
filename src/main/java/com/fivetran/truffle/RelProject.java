@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * The expression part of a SELECT query
  */
-public class RelProject extends RowTransform {
+class RelProject extends RowTransform {
     @Children
     private final StatementWriteLocal[] select;
 

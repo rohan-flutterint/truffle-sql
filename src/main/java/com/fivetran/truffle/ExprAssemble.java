@@ -2,7 +2,7 @@ package com.fivetran.truffle;
 
 import org.apache.parquet.column.ColumnReadStore;
 
-public abstract class ExprAssemble extends ExprBase {
+abstract class ExprAssemble extends ExprBase {
     /**
      * Get ColumnReaders from ColumnReadStore
      */

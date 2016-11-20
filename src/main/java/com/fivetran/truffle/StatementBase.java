@@ -10,7 +10,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  */
 @TypeSystemReference(SqlTypes.class)
 @NodeInfo(description = "The abstract base node for all statements")
-public abstract class StatementBase extends Node {
+abstract class StatementBase extends Node {
 
     public abstract void executeVoid(VirtualFrame frame);
 

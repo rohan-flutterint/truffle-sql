@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @TypeSystem({boolean.class, long.class, double.class, LocalDate.class, Instant.class, String.class, SqlNull.class})
-public class SqlTypes {
+class SqlTypes {
 
     @TypeCheck(SqlNull.class)
     public static boolean isSqlNull(Object value) {

@@ -7,6 +7,6 @@ import com.oracle.truffle.api.nodes.Node;
  *
  * Could be a literal, or a file somewhere.
  */
-public abstract class RowSource extends Node implements LateBind {
+abstract class RowSource extends Node implements LateBind {
     protected abstract void executeVoid();
 }

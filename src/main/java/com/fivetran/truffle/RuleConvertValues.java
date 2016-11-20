@@ -2,7 +2,7 @@ package com.fivetran.truffle;
 
 import org.apache.calcite.rel.logical.LogicalValues;
 
-public class RuleConvertValues extends RuleConvert<LogicalValues> {
+class RuleConvertValues extends RuleConvert<LogicalValues> {
     public static RuleConvertValues INSTANCE = new RuleConvertValues();
 
     private RuleConvertValues() {

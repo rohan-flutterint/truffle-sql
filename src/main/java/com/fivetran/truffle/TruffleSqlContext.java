@@ -7,7 +7,7 @@ import com.oracle.truffle.api.object.Layout;
 
 import java.io.*;
 
-public class TruffleSqlContext extends ExecutionContext {
+class TruffleSqlContext extends ExecutionContext {
     public final BufferedReader in;
     public final PrintWriter out, err;
 

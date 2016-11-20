@@ -12,7 +12,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
  */
 @TypeSystemReference(SqlTypes.class)
 @NodeInfo(description = "The abstract base node for all expressions")
-public abstract class ExprBase extends Node {
+abstract class ExprBase extends Node {
     /**
      * @param frame One row of data. Each FrameSlot corresponds to one column.
      * @return Result of evaluating the expression

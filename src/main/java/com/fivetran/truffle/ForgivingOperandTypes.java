@@ -13,7 +13,7 @@ import static org.apache.calcite.sql.type.OperandTypes.*;
 /**
  * Override some of the type checkers in {@link OperandTypes}
  */
-public class ForgivingOperandTypes {
+class ForgivingOperandTypes {
 
     /**
      * Operand type-checking strategy where operand types must allow unordered

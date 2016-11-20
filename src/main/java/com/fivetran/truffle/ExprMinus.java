@@ -4,7 +4,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "-")
-public abstract class ExprMinus extends ExprBinary {
+abstract class ExprMinus extends ExprBinary {
 
     @Specialization
     protected long sub(long left, long right) {

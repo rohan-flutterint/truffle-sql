@@ -12,7 +12,6 @@ import org.apache.calcite.sql.util.ReflectiveSqlOperatorTable;
  */
 public class ForgivingOperatorTable extends ReflectiveSqlOperatorTable {
 
-
     /**
      * Logical equals operator, '<code>=</code>'.
      */

@@ -4,7 +4,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "/")
-public abstract class ExprDivide extends ExprBinary {
+abstract class ExprDivide extends ExprBinary {
 
     @Specialization
     protected long div(long left, long right) {

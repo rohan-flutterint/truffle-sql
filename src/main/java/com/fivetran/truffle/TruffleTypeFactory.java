@@ -7,7 +7,7 @@ import org.apache.calcite.rel.type.StructKind;
 
 import java.lang.reflect.Type;
 
-public class TruffleTypeFactory extends JavaTypeFactoryImpl {
+class TruffleTypeFactory extends JavaTypeFactoryImpl {
     @Override
     public RelDataType createType(Type type) {
         RelDataType result = super.createType(type);

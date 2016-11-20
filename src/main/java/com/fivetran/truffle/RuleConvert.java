@@ -7,7 +7,7 @@ import org.apache.calcite.rel.convert.ConverterRule;
 /**
  * Rules that convert Logical* to Physical*
  */
-public abstract class RuleConvert<From extends RelNode> extends ConverterRule {
+abstract class RuleConvert<From extends RelNode> extends ConverterRule {
     private final Class<From> fromClass;
 
     public RuleConvert(Class<From> from,

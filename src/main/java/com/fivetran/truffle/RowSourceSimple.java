@@ -3,7 +3,7 @@ package com.fivetran.truffle;
 /**
  * Most RowSources send rows from 1 place, for example a file, to 1 place, for example a LogicalProject
  */
-public abstract class RowSourceSimple extends RowSource {
+abstract class RowSourceSimple extends RowSource {
     protected final FrameDescriptorPart sourceFrame;
 
     /**

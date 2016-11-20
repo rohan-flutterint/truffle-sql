@@ -6,7 +6,7 @@ import org.apache.calcite.rel.logical.LogicalUnion;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RuleConvertUnion extends RuleConvert<LogicalUnion> {
+class RuleConvertUnion extends RuleConvert<LogicalUnion> {
     public static RuleConvertUnion INSTANCE = new RuleConvertUnion();
 
     private RuleConvertUnion() {

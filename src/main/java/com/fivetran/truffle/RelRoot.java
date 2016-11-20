@@ -5,7 +5,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RelRoot extends RootNode {
+class RelRoot extends RootNode {
     @Child
     private RowSource delegate;
 

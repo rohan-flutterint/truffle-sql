@@ -18,7 +18,7 @@ import com.oracle.truffle.api.object.Shape;
  */
 @NodeInfo(shortName = ".")
 @NodeChildren({@NodeChild("receiverNode")})
-public abstract class ExprReadProperty extends ExprBase {
+abstract class ExprReadProperty extends ExprBase {
     protected static final int CACHE_LIMIT = 3;
 
     protected final String name;

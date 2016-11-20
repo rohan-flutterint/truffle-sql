@@ -11,7 +11,7 @@ import java.util.Set;
  * SQL operator table that searches a sequence of operator tables.
  * The first table that contains an operator shadows all the rest.
  */
-public class ShadowOperatorTable implements SqlOperatorTable {
+class ShadowOperatorTable implements SqlOperatorTable {
     private final SqlOperatorTable[] delegates;
 
     public ShadowOperatorTable(SqlOperatorTable... delegates) {

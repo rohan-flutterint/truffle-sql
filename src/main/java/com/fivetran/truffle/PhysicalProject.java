@@ -12,7 +12,7 @@ import org.apache.calcite.rex.RexNode;
 
 import java.util.List;
 
-public class PhysicalProject extends Project implements PhysicalRel {
+class PhysicalProject extends Project implements PhysicalRel {
     PhysicalProject(RelOptCluster cluster,
                     RelTraitSet traits,
                     RelNode input,

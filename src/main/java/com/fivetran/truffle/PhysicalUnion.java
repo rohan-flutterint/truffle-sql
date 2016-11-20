@@ -8,7 +8,7 @@ import org.apache.calcite.rel.core.Union;
 
 import java.util.List;
 
-public class PhysicalUnion extends Union implements PhysicalRel {
+class PhysicalUnion extends Union implements PhysicalRel {
     protected PhysicalUnion(RelOptCluster cluster,
                             RelTraitSet traits,
                             List<RelNode> inputs,

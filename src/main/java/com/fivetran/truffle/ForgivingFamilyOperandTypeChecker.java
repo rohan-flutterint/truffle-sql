@@ -31,7 +31,7 @@ import java.util.List;
  *
  * Based on {@link FamilyOperandTypeChecker}, but forgives null values
  */
-public class ForgivingFamilyOperandTypeChecker implements SqlSingleOperandTypeChecker {
+class ForgivingFamilyOperandTypeChecker implements SqlSingleOperandTypeChecker {
   //~ Instance fields --------------------------------------------------------
 
   protected final ImmutableList<SqlTypeFamily> families;

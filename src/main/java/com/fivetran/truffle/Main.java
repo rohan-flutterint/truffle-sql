@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-public class Main {
+class Main {
     public static void main(String[] args) throws IOException {
         if (args.length == 0)
             System.err.println("Usage: tsql Source.sql");

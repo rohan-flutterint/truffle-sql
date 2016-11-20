@@ -1,6 +1,6 @@
 package com.fivetran.truffle;
 
-public class RelUnion extends RowSource {
+class RelUnion extends RowSource {
     @Children
     private final RowSource[] all;
 

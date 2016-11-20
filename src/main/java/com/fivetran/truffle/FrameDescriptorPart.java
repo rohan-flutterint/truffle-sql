@@ -6,7 +6,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 /**
  * Represents a contiguous subset of frame slots that we use to store a relation
  */
-public class FrameDescriptorPart {
+class FrameDescriptorPart {
     private final FrameDescriptor frame;
     private final int startOffset;
     private final int size;

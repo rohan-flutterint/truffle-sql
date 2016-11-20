@@ -10,7 +10,7 @@ import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 
-public class ExprAssembleGroup extends ExprAssemble {
+class ExprAssembleGroup extends ExprAssemble {
     /**
      * Type that we are assembling
      */

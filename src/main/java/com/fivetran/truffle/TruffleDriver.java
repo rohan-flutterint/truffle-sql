@@ -1,11 +1,14 @@
 package com.fivetran.truffle;
 
-import org.apache.calcite.avatica.*;
+import org.apache.calcite.avatica.AvaticaConnection;
+import org.apache.calcite.avatica.DriverVersion;
+import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.UnregisteredDriver;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class TruffleDriver extends UnregisteredDriver {
+class TruffleDriver extends UnregisteredDriver {
     static {
         try {
             DriverManager.registerDriver(new TruffleDriver());

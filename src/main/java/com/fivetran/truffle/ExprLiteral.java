@@ -2,7 +2,7 @@ package com.fivetran.truffle;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class ExprLiteral extends ExprBase {
+abstract class ExprLiteral extends ExprBase {
     static ExprLiteral Boolean(boolean value) {
         return new ExprLiteral() {
             @Override

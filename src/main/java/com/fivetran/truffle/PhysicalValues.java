@@ -10,7 +10,7 @@ import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLiteral;
 
-public class PhysicalValues extends Values implements PhysicalRel {
+class PhysicalValues extends Values implements PhysicalRel {
     protected PhysicalValues(RelOptCluster cluster,
                              RelDataType rowType,
                              ImmutableList<ImmutableList<RexLiteral>> tuples,

@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
  */
 @NodeChild(value = "valueNode", type = ExprBase.class)
 @NodeField(name = "slot", type = FrameSlot.class)
-public abstract class StatementWriteLocal extends StatementBase {
+abstract class StatementWriteLocal extends StatementBase {
 
     protected abstract FrameSlot getSlot();
 

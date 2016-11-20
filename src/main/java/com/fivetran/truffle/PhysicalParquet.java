@@ -16,7 +16,7 @@ import java.net.URI;
 /**
  * Scans a parquet-format file.
  */
-public class PhysicalParquet extends TableScan implements PhysicalRel {
+class PhysicalParquet extends TableScan implements PhysicalRel {
 
     /**
      * Location of the file. Could be a local file, S3.

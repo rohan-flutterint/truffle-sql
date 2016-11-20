@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.apache.calcite.util.Static.RESOURCE;
 
-public class ForgivingComparableOperandTypeChecker extends ComparableOperandTypeChecker {
+class ForgivingComparableOperandTypeChecker extends ComparableOperandTypeChecker {
     public ForgivingComparableOperandTypeChecker(int nOperands,
                                                  RelDataTypeComparability requiredComparability,
                                                  Consistency consistency) {

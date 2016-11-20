@@ -4,7 +4,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "*")
-public abstract class ExprMultiply extends ExprBinary {
+abstract class ExprMultiply extends ExprBinary {
 
     @Specialization
     protected long mul(long left, long right) {

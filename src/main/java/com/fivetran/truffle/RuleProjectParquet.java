@@ -10,7 +10,7 @@ import org.apache.parquet.schema.MessageType;
 
 import java.util.Objects;
 
-public class RuleProjectParquet extends RelOptRule {
+class RuleProjectParquet extends RelOptRule {
     public static final RuleProjectParquet INSTANCE = new RuleProjectParquet();
 
     private RuleProjectParquet() {
