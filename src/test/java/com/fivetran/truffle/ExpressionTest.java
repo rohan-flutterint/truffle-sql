@@ -165,4 +165,22 @@ public class ExpressionTest extends SqlTestBase {
                 {2L}
         }));
     }
+
+    @Test
+    public void coalesce() throws SQLException {
+        List<Object[]> results = query("SELECT coalesce(NULL, 1) AS n");
+
+        assertThat(results, contains(new Object[][] {
+                {1L}
+        }));
+    }
+
+    @Test
+    public void isNotNull() throws SQLException {
+        List<Object[]> results = query("SELECT NULL IS NOT NULL AS n");
+
+        assertThat(results, contains(new Object[][] {
+                {false}
+        }));
+    }
 }

@@ -117,9 +117,9 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case MINUS_PREFIX:
                 throw new UnsupportedOperationException();
             case IS_NULL:
-                throw new UnsupportedOperationException();
+                return ExprIsNullNodeGen.create(compile(singleOperand(call.getOperands())));
             case IS_NOT_NULL:
-                throw new UnsupportedOperationException();
+                return ExprNotNodeGen.create(ExprIsNullNodeGen.create(compile(singleOperand(call.getOperands()))));
             case ROW:
                 throw new UnsupportedOperationException();
             case CAST:
@@ -183,6 +183,12 @@ class CompileExpr implements RexVisitor<ExprBase> {
             default:
                 throw new RuntimeException("Don't know what to do with " + call.getKind());
         }
+    }
+
+    private RexNode singleOperand(List<RexNode> operands) {
+        assert operands.size() == 1;
+
+        return operands.get(0);
     }
 
     private ExprBase compileCase(List<RexNode> operands, int offset) {
