@@ -21,7 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public abstract class SqlTestBase {
+public abstract class SqlTestBase extends TestBase {
     @BeforeClass
     public static void registerDriver() throws ClassNotFoundException {
         // Causes driver to register itself

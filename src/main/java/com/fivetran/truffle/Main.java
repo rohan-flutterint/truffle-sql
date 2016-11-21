@@ -7,13 +7,30 @@ import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.sql.SqlNode;
 import org.intellij.lang.annotations.Language;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.function.Consumer;
+import java.util.logging.LogManager;
 
 public class Main {
+    static {
+        try {
+            InputStream properties = Parquets.class.getResourceAsStream("/logging.properties");
+
+            LogManager.getLogManager().readConfiguration(properties);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void init() {
+        // Causes static section to be invoked
+    }
+
     public static void main(String[] args) throws SQLException {
         // Parse and run a query using Calcite JDBC implementation
         try {

@@ -11,8 +11,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
 		<calcite.version>1.10.0</calcite.version>
-		<parquet.version>1.8.1</parquet.version>
 		<hadoop.version>2.6.0</hadoop.version>
+		<slf4j.version>1.7.21</slf4j.version>
 	</properties>
 
 	<dependencies>
@@ -45,38 +45,55 @@
 			<groupId>org.apache.calcite</groupId>
 			<artifactId>calcite-core</artifactId>
 			<version>${calcite.version}</version>
+			<!-- Calcite includes a shaded version of avatica, that in turn includes things like SLF4J and Jackson -->
+			<!-- Instead, we're going to include avatica-core, the unshaded version -->
+			<!-- https://calcite.apache.org/avatica/docs/custom_client_artifacts.html -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.calcite.avatica</groupId>
+					<artifactId>avatica</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.calcite</groupId>
-			<artifactId>calcite-linq4j</artifactId>
-			<version>${calcite.version}</version>
+			<groupId>org.apache.calcite.avatica</groupId>
+			<artifactId>avatica-core</artifactId>
+			<version>1.9.0</version>
 		</dependency>
 
 		<!-- Parquet file format -->
 		<dependency>
 			<groupId>org.apache.parquet</groupId>
-			<artifactId>parquet-common</artifactId>
-			<version>${parquet.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.parquet</groupId>
-			<artifactId>parquet-encoding</artifactId>
-			<version>${parquet.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.parquet</groupId>
-			<artifactId>parquet-column</artifactId>
-			<version>${parquet.version}</version>
+			<artifactId>parquet-format</artifactId>
+			<version>2.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.parquet</groupId>
 			<artifactId>parquet-hadoop</artifactId>
-			<version>${parquet.version}</version>
+			<version>1.9.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>${hadoop.version}</version>
+
+			<exclusions>
+				<!-- Hadoop specifies log4j as the delegate of sl4fj -->
+				<!-- We'll use slf4j-jdk, so we exclude log4j here -->
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+
+				<!-- Hadoop depends on log4j -->
+				<!-- We will instead use java.util.logging, so we exclude log4j -->
+				<!-- We'll use the slf4j-log4j bridge to redirect log4j -> slf4j -> java.util.logging -->
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Intellij @Language annotation -->
@@ -84,6 +101,23 @@
 			<groupId>com.intellij</groupId>
 			<artifactId>annotations</artifactId>
 			<version>12.0</version>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 
 		<!-- Testing -->

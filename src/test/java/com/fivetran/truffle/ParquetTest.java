@@ -7,6 +7,7 @@ import org.apache.parquet.column.ColumnReadStore;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.hadoop.Footer;
 import org.apache.parquet.schema.MessageType;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,7 +18,11 @@ import java.util.function.Function;
 import static com.fivetran.truffle.ParquetTestResources.documentPath;
 import static com.fivetran.truffle.ParquetTestResources.documentType;
 
-public class ParquetTest {
+public class ParquetTest extends TestBase {
+    @BeforeClass
+    public static void setLogFormat() {
+        Main.init();
+    }
 
     @Test
     public void readDocumentColumns() throws IOException {
