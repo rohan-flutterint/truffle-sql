@@ -31,8 +31,18 @@ abstract class ExprCast extends ExprBase {
         return value;
     }
 
+    @Specialization(guards = "asLong()")
+    protected long executeLong(double value) {
+        return (long) value;
+    }
+
     @Specialization(guards = "asDouble()")
     protected double executeDouble(double value) {
+        return value;
+    }
+
+    @Specialization(guards = "asDouble()")
+    protected double executeDouble(long value) {
         return value;
     }
 
@@ -47,8 +57,11 @@ abstract class ExprCast extends ExprBase {
     }
 
     @Specialization(guards = "asString()")
-    protected String executeString(String value) {
-        return value;
+    protected Object executeString(Object value) {
+        if (value == SqlNull.INSTANCE)
+            return SqlNull.INSTANCE;
+        else
+            return String.valueOf(value);
     }
 
     @Specialization

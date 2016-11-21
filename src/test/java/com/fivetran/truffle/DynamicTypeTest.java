@@ -48,6 +48,7 @@ public class DynamicTypeTest extends SqlTestBase {
     public void castLong() throws SQLException {
         mockRows = new Object[] {
                 new Something(1L),
+                new Something(2.1d),
                 new Something("foo"),
                 new Something(null)
         };
@@ -56,6 +57,26 @@ public class DynamicTypeTest extends SqlTestBase {
 
         assertThat(results, contains(new Object[][] {
                 {1L},
+                {2L},
+                {null},
+                {null}
+        }));
+    }
+
+    @Test
+    public void castDouble() throws SQLException {
+        mockRows = new Object[] {
+                new Something(1.0d),
+                new Something(2L),
+                new Something("foo"),
+                new Something(null)
+        };
+
+        List<Object[]> results = query("SELECT cast(something AS DOUBLE) FROM TABLE(mock())");
+
+        assertThat(results, contains(new Object[][] {
+                {1.0d},
+                {2.0d},
                 {null},
                 {null}
         }));
@@ -66,6 +87,7 @@ public class DynamicTypeTest extends SqlTestBase {
         mockRows = new Object[] {
                 new Something("hi"),
                 new Something(1L),
+                new Something(2.0d),
                 new Something(null)
         };
 
@@ -73,7 +95,8 @@ public class DynamicTypeTest extends SqlTestBase {
 
         assertThat(results, contains(new Object[][] {
                 {"hi"},
-                {null},
+                {"1"},
+                {"2.0"},
                 {null}
         }));
     }
