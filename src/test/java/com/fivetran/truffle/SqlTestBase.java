@@ -41,7 +41,7 @@ public abstract class SqlTestBase extends TestBase {
         TruffleMeta.registerMacro("mock", new TableMacro() {
             @Override
             public TranslatableTable apply(List<Object> arguments) {
-                Objects.requireNonNull(mockRows, "You need to set QueryTest.mockRows before calling TABLE(mock())");
+                Objects.requireNonNull(mockRows, "You need to set MockTest.mockRows before calling TABLE(mock())");
 
                 return new MockTable(mockRows[0].getClass(), mockRows);
             }
