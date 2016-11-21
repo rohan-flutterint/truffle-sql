@@ -69,13 +69,13 @@ class CompileExpr implements RexVisitor<ExprBase> {
     public ExprBase visitCall(RexCall call) {
         switch (call.getKind()) {
             case TIMES:
-                return binary(call, ExprMultiplyNodeGen::create);
+                return binary(call.getOperands(), ExprMultiplyNodeGen::create);
             case DIVIDE:
-                return binary(call, ExprDivideNodeGen::create);
+                return binary(call.getOperands(), ExprDivideNodeGen::create);
             case PLUS:
-                return binary(call, ExprPlusNodeGen::create);
+                return binary(call.getOperands(), ExprPlusNodeGen::create);
             case MINUS:
-                return binary(call, ExprMinusNodeGen::create);
+                return binary(call.getOperands(), ExprMinusNodeGen::create);
             case IN:
                 throw new UnsupportedOperationException();
             case LESS_THAN:
@@ -87,13 +87,13 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case GREATER_THAN_OR_EQUAL:
                 throw new UnsupportedOperationException();
             case EQUALS:
-                return binary(call, ExprEqualsNodeGen::create);
+                return binary(call.getOperands(), ExprEqualsNodeGen::create);
             case NOT_EQUALS:
-                return binary(call, ExprNotEqualsNodeGen::create);
+                return binary(call.getOperands(), ExprNotEqualsNodeGen::create);
             case OR:
-                return binary(call, ExprOrNodeGen::create);
+                return fold(call.getOperands(), 0, ExprOrNodeGen::create);
             case AND:
-                return binary(call, ExprAndNodeGen::create);
+                return binary(call.getOperands(), ExprAndNodeGen::create);
             case LIKE:
                 throw new UnsupportedOperationException();
             case SIMILAR:
@@ -111,7 +111,7 @@ class CompileExpr implements RexVisitor<ExprBase> {
             case TIMESTAMP_DIFF:
                 throw new UnsupportedOperationException();
             case NOT:
-                throw new UnsupportedOperationException();
+                return ExprNotNodeGen.create(compile(singleOperand(call.getOperands())));
             case PLUS_PREFIX:
                 throw new UnsupportedOperationException();
             case MINUS_PREFIX:
@@ -214,9 +214,18 @@ class CompileExpr implements RexVisitor<ExprBase> {
         ExprBinary accept(ExprBase left, ExprBase right);
     }
 
-    private ExprBase binary(RexCall call, BinaryConstructor then) {
-        List<RexNode> operands = call.getOperands();
+    private ExprBase fold(List<RexNode> operands, int offset, BinaryConstructor reduce) {
+        assert operands.size() > 0;
 
+        ExprBase acc = compile(operands.get(operands.size() - 1));
+
+        for (int i = operands.size() - 2; i >= 0; i--)
+            acc = reduce.accept(compile(operands.get(i)), acc);
+
+        return acc;
+    }
+
+    private ExprBase binary(List<RexNode> operands, BinaryConstructor then) {
         assert operands.size() == 2;
 
         ExprBase left = operands.get(0).accept(new CompileExpr(from));

@@ -86,6 +86,12 @@ public class ExpressionTest extends SqlTestBase {
         assertThat(results, contains(new Object[][] {
                 {20L, null}
         }));
+
+        results = query("SELECT 2 * 2 * 2");
+
+        assertThat(results, contains(new Object[][] {
+                {8L}
+        }));
     }
 
     @Test
@@ -178,6 +184,21 @@ public class ExpressionTest extends SqlTestBase {
     @Test
     public void isNotNull() throws SQLException {
         List<Object[]> results = query("SELECT NULL IS NOT NULL AS n");
+
+        assertThat(results, contains(new Object[][] {
+                {false}
+        }));
+    }
+
+    @Test
+    public void in() throws SQLException {
+        List<Object[]> results = query("SELECT 1 IN (1, 2, 3)");
+
+        assertThat(results, contains(new Object[][] {
+                {true}
+        }));
+
+        results = query("SELECT 1 NOT IN (1, 2, 3)");
 
         assertThat(results, contains(new Object[][] {
                 {false}
