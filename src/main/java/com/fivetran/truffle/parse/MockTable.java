@@ -1,6 +1,5 @@
 package com.fivetran.truffle.parse;
 
-import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
@@ -19,9 +18,9 @@ public class MockTable extends AbstractTable implements TranslatableTable {
 
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-        JavaTypeFactory javaTypes = (TruffleTypeFactory) typeFactory;
+        TruffleTypeFactory factory = (TruffleTypeFactory) typeFactory;
 
-        return javaTypes.createStructType(type);
+        return factory.createPeekableStructType(type);
     }
 
     @Override

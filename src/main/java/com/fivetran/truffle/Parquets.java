@@ -82,11 +82,11 @@ public class Parquets {
         }
     }
 
-    public static RelDataType sqlType(Type parquetType, RelDataTypeFactory typeFactory) {
-        return doSqlType(parquetType, typeFactory, true);
+    public static RelDataType sqlType(MessageType parquetType, RelDataTypeFactory typeFactory) {
+        return doSqlType(parquetType, typeFactory, 0);
     }
 
-    private static RelDataType doSqlType(Type parquetType, RelDataTypeFactory typeFactory, boolean isRoot) {
+    private static RelDataType doSqlType(Type parquetType, RelDataTypeFactory typeFactory, int level) {
         if (parquetType.isPrimitive()) {
             PrimitiveType.PrimitiveTypeName primitive = parquetType.asPrimitiveType().getPrimitiveTypeName();
 
@@ -97,10 +97,10 @@ public class Parquets {
             RelDataTypeFactory.FieldInfoBuilder builder = typeFactory.builder();
 
             for (Type field : group.getFields()) {
-                builder.add(field.getName(), doSqlType(field, typeFactory, false));
+                builder.add(field.getName(), doSqlType(field, typeFactory, level + 1));
             }
 
-            if (!isRoot)
+            if (level == 1)
                 builder.kind(StructKind.PEEK_FIELDS);
 
             return builder.build();
