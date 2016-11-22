@@ -10,7 +10,6 @@ import org.junit.runners.Suite;
         FileTest.class,
         JoinTest.class,
         MockTest.class,
-        ParquetsTest.class,
         ParquetTest.class,
         RunTest.class
 })

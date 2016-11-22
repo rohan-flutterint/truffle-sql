@@ -23,7 +23,7 @@ public class FileTest extends SqlTestBase {
 
     @Test
     public void nestedSingleColumn() throws IOException, SQLException {
-        List<Object[]> rows = query("SELECT docId, `name`.url FROM TABLE(file('" + documentPath() + "'))");
+        List<Object[]> rows = query("SELECT docId, t.`name`.url FROM TABLE(file('" + documentPath() + "')) AS t");
 
         assertThat(rows, contains(new Object[][] {
                 {10L, "http://A"},
@@ -35,8 +35,8 @@ public class FileTest extends SqlTestBase {
 
     @Test
     public void nestedTwoStage() throws IOException, SQLException {
-        List<Object[]> rows = query("SELECT docId, `name`.url " +
-                                    "FROM (SELECT docId, `name` FROM TABLE(file('" + documentPath() + "')))");
+        List<Object[]> rows = query("SELECT docId, t.`name`.url " +
+                                    "FROM (SELECT docId, `name` FROM TABLE(file('" + documentPath() + "'))) AS t");
 
         assertThat(rows, contains(new Object[][] {
                 {10L, "http://A"},

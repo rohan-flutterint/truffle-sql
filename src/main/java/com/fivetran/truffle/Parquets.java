@@ -3,7 +3,6 @@ package com.fivetran.truffle;
 import com.oracle.truffle.api.object.Shape;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.rel.type.StructKind;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -83,10 +82,10 @@ public class Parquets {
     }
 
     public static RelDataType sqlType(MessageType parquetType, RelDataTypeFactory typeFactory) {
-        return doSqlType(parquetType, typeFactory, 0);
+        return doSqlType(parquetType, typeFactory);
     }
 
-    private static RelDataType doSqlType(Type parquetType, RelDataTypeFactory typeFactory, int level) {
+    private static RelDataType doSqlType(Type parquetType, RelDataTypeFactory typeFactory) {
         if (parquetType.isPrimitive()) {
             PrimitiveType.PrimitiveTypeName primitive = parquetType.asPrimitiveType().getPrimitiveTypeName();
 
@@ -97,11 +96,8 @@ public class Parquets {
             RelDataTypeFactory.FieldInfoBuilder builder = typeFactory.builder();
 
             for (Type field : group.getFields()) {
-                builder.add(field.getName(), doSqlType(field, typeFactory, level + 1));
+                builder.add(field.getName(), doSqlType(field, typeFactory));
             }
-
-            if (level == 1)
-                builder.kind(StructKind.PEEK_FIELDS);
 
             return builder.build();
         }

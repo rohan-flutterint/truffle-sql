@@ -20,7 +20,7 @@ public class MockTable extends AbstractTable implements TranslatableTable {
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
         TruffleTypeFactory factory = (TruffleTypeFactory) typeFactory;
 
-        return factory.createPeekableStructType(type);
+        return factory.createStructType(type);
     }
 
     @Override
