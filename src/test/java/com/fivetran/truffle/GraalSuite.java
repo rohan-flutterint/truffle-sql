@@ -8,6 +8,7 @@ import org.junit.runners.Suite;
         DynamicTypeTest.class,
         ExpressionTest.class,
         FileTest.class,
+        JoinTest.class,
         MockTest.class,
         ParquetsTest.class,
         ParquetTest.class,
