@@ -17,6 +17,6 @@ public class RuleProjectParquetTest extends SqlTestBase {
         RelRoot parse = Main.parse("SELECT t.name.url FROM TABLE(file('" + documentPath() + "')) AS t");
         RelDataType type = parse.rel.getRowType();
 
-        assertThat(type, hasToString("RecordType(VARCHAR(1) url)"));
+        assertThat(type, hasToString("RecordType(VARCHAR url)"));
     }
 }

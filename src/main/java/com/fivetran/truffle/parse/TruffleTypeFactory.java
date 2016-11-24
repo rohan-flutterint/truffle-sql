@@ -10,6 +10,10 @@ import java.lang.reflect.Type;
  * Customizes the Calcite type system.
  */
 public class TruffleTypeFactory extends JavaTypeFactoryImpl {
+    public TruffleTypeFactory() {
+        super(TruffleTypeSystem.INSTANCE);
+    }
+
     @Override
     public RelDataType createType(Type type) {
         // ANY type
@@ -18,4 +22,5 @@ public class TruffleTypeFactory extends JavaTypeFactoryImpl {
         else
             return super.createType(type);
     }
+
 }
