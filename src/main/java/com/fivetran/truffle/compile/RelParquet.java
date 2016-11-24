@@ -1,5 +1,6 @@
 package com.fivetran.truffle.compile;
 
+import com.fivetran.truffle.NamedProjection;
 import com.fivetran.truffle.Parquets;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -24,9 +25,14 @@ public class RelParquet extends RowSourceSimple {
     private final URI file;
 
     /**
+     * Original schema of the file
+     */
+    private final MessageType schema;
+
+    /**
      * Columns we want to project
      */
-    private final MessageType project;
+    private final List<NamedProjection> project;
 
     /**
      * Column readers. These are children of writers,
@@ -40,17 +46,18 @@ public class RelParquet extends RowSourceSimple {
     @Children
     private final StatementWriteLocal[] writers;
 
-    public RelParquet(URI file, MessageType project) {
-        super(FrameDescriptorPart.root(project.getFieldCount()));
+    public RelParquet(URI file, MessageType schema, List<NamedProjection> project) {
+        super(FrameDescriptorPart.root(project.size()));
 
         this.file = file;
+        this.schema = schema;
         this.project = project;
-        this.readers = new ExprAssemble[project.getFieldCount()];
-        this.writers = new StatementWriteLocal[project.getFieldCount()];
+        this.readers = new ExprAssemble[project.size()];
+        this.writers = new StatementWriteLocal[project.size()];
 
-        for (int i = 0; i < project.getFieldCount(); i++) {
-            String[] path = {project.getFieldName(i)};
-            ExprAssemble reader = CompileParquet.compile(project, path);
+        for (int i = 0; i < project.size(); i++) {
+            String[] path = project.get(i).projection.path;
+            ExprAssemble reader = CompileParquet.compile(schema, path);
             FrameSlot slot = sourceFrame.findFrameSlot(i);
 
             readers[i] = reader;
@@ -71,7 +78,7 @@ public class RelParquet extends RowSourceSimple {
             }
 
             // Install ColumnReadStore into each column reader
-            ColumnReadStore readStore = Parquets.columns(file, project, footer);
+            ColumnReadStore readStore = Parquets.columns(file, schema, footer);
 
             for (ExprAssemble reader : readers) {
                 reader.prepare(readStore);

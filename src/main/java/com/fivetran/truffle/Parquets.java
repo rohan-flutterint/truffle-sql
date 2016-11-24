@@ -81,7 +81,7 @@ public class Parquets {
         }
     }
 
-    public static RelDataType sqlType(MessageType parquetType, RelDataTypeFactory typeFactory) {
+    public static RelDataType sqlType(Type parquetType, RelDataTypeFactory typeFactory) {
         return doSqlType(parquetType, typeFactory);
     }
 
