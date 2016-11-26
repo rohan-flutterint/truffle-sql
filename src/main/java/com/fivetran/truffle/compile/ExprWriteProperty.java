@@ -23,17 +23,11 @@ abstract class ExprWriteProperty extends StatementBase {
     protected static final int CACHE_LIMIT = 3;
 
     /**
-     * Record that we are assembling.
-     */
-    protected ExprAssembleGroup parent;
-
-    /**
      * Name of the field we are writing.
      */
     protected String name;
 
-    ExprWriteProperty(ExprAssembleGroup parent, String name) {
-        this.parent = parent;
+    ExprWriteProperty(String name) {
         this.name = name;
     }
 
@@ -151,7 +145,7 @@ abstract class ExprWriteProperty extends StatementBase {
         return location;
     }
 
-    protected Shape defineProperty(Shape oldShape, Object name, Object value) {
-        return parent.defineProperty(oldShape, name, value);
+    protected static Shape defineProperty(Shape oldShape, Object name, Object value) {
+        return oldShape.defineProperty(name, value, 0);
     }
 }

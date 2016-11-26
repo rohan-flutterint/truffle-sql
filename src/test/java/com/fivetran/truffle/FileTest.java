@@ -34,6 +34,19 @@ public class FileTest extends SqlTestBase {
     }
 
     @Test
+    public void multipleRepeatedColumns() throws IOException, SQLException {
+        List<Object[]> rows = query("SELECT docId, t.`name`.url, t.`name`.`language`.code FROM TABLE(file('" + documentPath() + "')) AS t");
+
+        assertThat(rows, contains(new Object[][] {
+                {10L, "http://A", "en-us"},
+                {10L, "http://A", "en"},
+                {10L, "http://B", null},
+                {10L, null, "en-gb"},
+                {20L, "http://C", null}
+        }));
+    }
+
+    @Test
     public void nestedTwoStage() throws IOException, SQLException {
         List<Object[]> rows = query("SELECT docId, t.`name`.url " +
                                     "FROM (SELECT docId, `name` FROM TABLE(file('" + documentPath() + "'))) AS t");

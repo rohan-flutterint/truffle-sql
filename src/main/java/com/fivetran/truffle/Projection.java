@@ -2,6 +2,8 @@ package com.fivetran.truffle;
 
 import com.google.common.base.Joiner;
 
+import java.util.Arrays;
+
 /**
  * Represents a projection from a nested schema, for example SELECT a.b
  *
@@ -67,5 +69,18 @@ public class Projection {
         System.arraycopy(tail.path, 0, result, path.length, tail.path.length);
 
         return new Projection(result);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Projection that = (Projection) o;
+        return Arrays.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(path);
     }
 }

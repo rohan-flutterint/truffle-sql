@@ -1,9 +1,8 @@
 package com.fivetran.truffle.compile;
 
+import com.fivetran.truffle.Projection;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.apache.parquet.column.ColumnDescriptor;
-import org.apache.parquet.column.ColumnReadStore;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
@@ -12,30 +11,29 @@ import org.apache.parquet.schema.Type;
 /**
  * Reads a primitive field.
  */
-abstract class ExprAssembleColumn extends ExprAssemble {
+abstract class ExprReadColumn extends ExprBase {
     private final PrimitiveType type;
-    private final ColumnDescriptor column;
-    private ColumnReader reader;
+    private ColumnReader currentFile;
     private final int maxDefinitionLevel;
 
-    protected ExprAssembleColumn(MessageType root, String[] path) {
-        this.type = (PrimitiveType) root.getType(path);
-        this.column = root.getColumnDescription(path);
-        this.maxDefinitionLevel = root.getMaxDefinitionLevel(path);
+    protected ExprReadColumn(MessageType root, Projection path) {
+        this.type = (PrimitiveType) root.getType(path.path);
+        this.maxDefinitionLevel = root.getMaxDefinitionLevel(path.path);
     }
 
-    @Override
-    @TruffleBoundary
-    protected void prepare(ColumnReadStore readStore) {
-        this.reader = readStore.getColumnReader(column);
+    protected void prepare(ColumnReader reader) {
+        this.currentFile = reader;
     }
 
+    boolean repeats(int targetRepetitionLevel) {
+        return currentFile.getCurrentRepetitionLevel() == targetRepetitionLevel;
+    }
     /**
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isBoolean()"})
     protected boolean getBoolean() {
-        return doGetBoolean(reader);
+        return doGetBoolean(currentFile);
     }
 
     protected boolean isBoolean() {
@@ -48,10 +46,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = "isBoolean()", rewriteOn = NotDefinedException.class)
     protected boolean tryGetBoolean() {
-        if (isNull(reader))
+        if (isNull(currentFile))
             throw new NotDefinedException();
         else
-            return doGetBoolean(reader);
+            return doGetBoolean(currentFile);
     }
 
     @TruffleBoundary
@@ -68,10 +66,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"isNullable()", "isBoolean()"})
     protected Object getNullableBoolean() {
-        if (isNull(reader))
-            return doGetNull(reader);
+        if (isNull(currentFile))
+            return doGetNull(currentFile);
         else
-            return doGetBoolean(reader);
+            return doGetBoolean(currentFile);
     }
 
     /**
@@ -79,7 +77,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"!isNullable()", "isDouble()"})
     protected double getDouble() {
-        return doGetDouble(reader);
+        return doGetDouble(currentFile);
     }
 
     protected boolean isDouble() {
@@ -98,10 +96,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = "isDouble()", rewriteOn = NotDefinedException.class)
     protected double tryGetDouble() {
-        if (isNull(reader))
+        if (isNull(currentFile))
             throw new NotDefinedException();
         else
-            return doGetDouble(reader);
+            return doGetDouble(currentFile);
     }
 
     @TruffleBoundary
@@ -118,10 +116,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"isNullable()", "isDouble()"})
     protected Object getNullableDouble() {
-        if (isNull(reader))
-            return doGetNull(reader);
+        if (isNull(currentFile))
+            return doGetNull(currentFile);
         else
-            return doGetDouble(reader);
+            return doGetDouble(currentFile);
     }
 
     /**
@@ -129,7 +127,7 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"!isNullable()", "isLong()"})
     protected long getLong() {
-        return doGetLong(reader);
+        return doGetLong(currentFile);
     }
 
     @TruffleBoundary
@@ -157,10 +155,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = "isLong()", rewriteOn = NotDefinedException.class)
     protected long tryGetLong() {
-        if (isNull(reader))
+        if (isNull(currentFile))
             throw new NotDefinedException();
         else
-            return doGetLong(reader);
+            return doGetLong(currentFile);
     }
 
     /**
@@ -168,10 +166,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"isNullable()", "isLong()"})
     protected Object getNullableLong() {
-        if (isNull(reader))
-            return doGetNull(reader);
+        if (isNull(currentFile))
+            return doGetNull(currentFile);
         else
-            return doGetLong(reader);
+            return doGetLong(currentFile);
     }
 
     /**
@@ -179,10 +177,10 @@ abstract class ExprAssembleColumn extends ExprAssemble {
      */
     @Specialization(guards = {"isString()"})
     protected Object getNullableString() {
-        if (isNull(reader))
-            return doGetNull(reader);
+        if (isNull(currentFile))
+            return doGetNull(currentFile);
         else
-            return doGetString(reader);
+            return doGetString(currentFile);
     }
 
     @TruffleBoundary

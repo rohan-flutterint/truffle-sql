@@ -78,4 +78,8 @@ public class Main {
     public static CallTarget compile(RelRoot plan, Consumer<Object[]> forEachRow) {
         return TruffleSqlLanguage.INSTANCE.compileInteractiveQuery(plan, forEachRow);
     }
+
+    public static <T> T unimplemented() {
+        throw new UnsupportedOperationException();
+    }
 }

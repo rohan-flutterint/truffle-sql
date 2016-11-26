@@ -146,6 +146,19 @@ public class Parquets {
     }
 
     /**
+     * If path is a repeated column or group, the repetition level associated with that path.
+     * When all member columns repeat at the target level, then the group has repeated.
+     *
+     * If path is not repeated, -1.
+     */
+    public static int targetRepetitionLevel(MessageType schema, Projection path) {
+        if (schema.getType(path.path).isRepetition(Type.Repetition.REPEATED))
+            return schema.getMaxRepetitionLevel(path.path);
+        else
+            return -1;
+    }
+
+    /**
      * Record converter that does nothing, so that we can access ColumnReader API directly.
      */
     private static class PseudoConverter extends GroupConverter {
