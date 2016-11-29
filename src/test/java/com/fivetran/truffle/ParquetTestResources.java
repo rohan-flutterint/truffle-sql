@@ -65,6 +65,64 @@ public final class ParquetTestResources {
         }
     }
 
+    private static URI trickyPath;
+
+    public static URI trickyPath() throws IOException {
+        ensureTricky();
+
+        return trickyPath;
+    }
+
+    private static void ensureTricky() throws IOException {
+        if (trickyPath != null)
+            return;
+
+        trickyPath = Paths.get("./target/generated-test-sources/Tricky.parquet").toUri();
+
+        ParquetWriter<Tricky> parquetWriter = pojoWriter(trickyPath, Tricky.class, createTrickyType());
+
+        parquetWriter.write(new Tricky(1, 10L));
+        parquetWriter.write(new Tricky(2, 20L));
+        parquetWriter.write(new Tricky(3, null));
+
+        parquetWriter.close();
+    }
+
+    private static MessageType createTrickyType() {
+        PrimitiveType id = Types.required(PrimitiveType.PrimitiveTypeName.INT64).named("id");
+        GroupType nested = Types.optionalGroup()
+                .addField(Types.required(PrimitiveType.PrimitiveTypeName.INT64).named("value"))
+                .named("nested");
+        GroupType nestedPlus = Types.optionalGroup()
+                .addField(Types.required(PrimitiveType.PrimitiveTypeName.INT64).named("value"))
+                .named("nestedPlus");
+
+        return Types.buildMessage()
+                .addField(id)
+                .addField(nested)
+                .addField(nestedPlus)
+                .named("tricky");
+    }
+
+    private static class Tricky {
+        public final long id;
+        public final Nested nested, nestedPlus;
+
+        private Tricky(long id, Long nestedValue) {
+            this.id = id;
+            this.nested = nestedValue == null ? null : new Nested(nestedValue);
+            this.nestedPlus = nestedValue == null ? null : new Nested(nestedValue + 1);
+        }
+    }
+
+    private static class Nested {
+        public final long value;
+
+        private Nested(long value) {
+            this.value = value;
+        }
+    }
+
     private static class Cases {
         public final String upper, lower;
 

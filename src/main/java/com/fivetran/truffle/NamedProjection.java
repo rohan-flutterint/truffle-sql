@@ -2,6 +2,12 @@ package com.fivetran.truffle;
 
 import java.util.Objects;
 
+/**
+ * A projections from a parquet file, and a new name for it.
+ *
+ * You would think that we could use {@code Map<String, Projection>} for this purpose and avoid needing this type.
+ * However, the order of fields is important in Calcite, so we use {@code List<NamedProjection>}.
+ */
 public class NamedProjection {
     public final String name;
     public final Projection projection;
