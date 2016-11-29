@@ -2,6 +2,7 @@ package com.fivetran.truffle.compile;
 
 import com.fivetran.truffle.Projection;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.MessageType;
@@ -11,28 +12,23 @@ import org.apache.parquet.schema.Type;
 /**
  * Reads a primitive field.
  */
+@NodeChild(value = "columnReader", type = ExprReadLocal.class)
 abstract class ExprReadColumn extends ExprBase {
     private final PrimitiveType type;
-    private ColumnReader currentFile;
     private final int maxDefinitionLevel;
 
     protected ExprReadColumn(MessageType root, Projection path) {
         this.type = (PrimitiveType) root.getType(path.path);
         this.maxDefinitionLevel = root.getMaxDefinitionLevel(path.path);
+
+        assert root.getMaxRepetitionLevel(path.path) == 0 : "Repeated fields should be flattened using table expressions";
     }
 
-    protected void prepare(ColumnReader reader) {
-        this.currentFile = reader;
-    }
-
-    boolean repeats(int targetRepetitionLevel) {
-        return currentFile.getCurrentRepetitionLevel() == targetRepetitionLevel;
-    }
     /**
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isBoolean()"})
-    protected boolean getBoolean() {
+    protected boolean getBoolean(ColumnReader currentFile) {
         return doGetBoolean(currentFile);
     }
 
@@ -45,7 +41,7 @@ abstract class ExprReadColumn extends ExprBase {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isBoolean()", rewriteOn = NotDefinedException.class)
-    protected boolean tryGetBoolean() {
+    protected boolean tryGetBoolean(ColumnReader currentFile) {
         if (isNull(currentFile))
             throw new NotDefinedException();
         else
@@ -65,7 +61,7 @@ abstract class ExprReadColumn extends ExprBase {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isBoolean()"})
-    protected Object getNullableBoolean() {
+    protected Object getNullableBoolean(ColumnReader currentFile) {
         if (isNull(currentFile))
             return doGetNull(currentFile);
         else
@@ -76,7 +72,7 @@ abstract class ExprReadColumn extends ExprBase {
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isDouble()"})
-    protected double getDouble() {
+    protected double getDouble(ColumnReader currentFile) {
         return doGetDouble(currentFile);
     }
 
@@ -95,7 +91,7 @@ abstract class ExprReadColumn extends ExprBase {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isDouble()", rewriteOn = NotDefinedException.class)
-    protected double tryGetDouble() {
+    protected double tryGetDouble(ColumnReader currentFile) {
         if (isNull(currentFile))
             throw new NotDefinedException();
         else
@@ -115,7 +111,7 @@ abstract class ExprReadColumn extends ExprBase {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isDouble()"})
-    protected Object getNullableDouble() {
+    protected Object getNullableDouble(ColumnReader currentFile) {
         if (isNull(currentFile))
             return doGetNull(currentFile);
         else
@@ -126,7 +122,7 @@ abstract class ExprReadColumn extends ExprBase {
      * If column is not nullable, we can just get its primitive value without checking the definition level.
      */
     @Specialization(guards = {"!isNullable()", "isLong()"})
-    protected long getLong() {
+    protected long getLong(ColumnReader currentFile) {
         return doGetLong(currentFile);
     }
 
@@ -154,7 +150,7 @@ abstract class ExprReadColumn extends ExprBase {
      * If definitionLevel < maxDefinitionLevel, abandon this path.
      */
     @Specialization(guards = "isLong()", rewriteOn = NotDefinedException.class)
-    protected long tryGetLong() {
+    protected long tryGetLong(ColumnReader currentFile) {
         if (isNull(currentFile))
             throw new NotDefinedException();
         else
@@ -165,7 +161,7 @@ abstract class ExprReadColumn extends ExprBase {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isNullable()", "isLong()"})
-    protected Object getNullableLong() {
+    protected Object getNullableLong(ColumnReader currentFile) {
         if (isNull(currentFile))
             return doGetNull(currentFile);
         else
@@ -176,7 +172,7 @@ abstract class ExprReadColumn extends ExprBase {
      * Slow path, returns boxed values.
      */
     @Specialization(guards = {"isString()"})
-    protected Object getNullableString() {
+    protected Object getNullableString(ColumnReader currentFile) {
         if (isNull(currentFile))
             return doGetNull(currentFile);
         else

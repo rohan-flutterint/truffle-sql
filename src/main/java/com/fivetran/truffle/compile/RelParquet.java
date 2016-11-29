@@ -2,21 +2,20 @@ package com.fivetran.truffle.compile;
 
 import com.fivetran.truffle.NamedProjection;
 import com.fivetran.truffle.Parquets;
-import com.fivetran.truffle.Projection;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.ColumnReadStore;
+import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.hadoop.Footer;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.schema.MessageType;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A parquet file that can be read and sent to a SQL query
@@ -41,43 +40,43 @@ public class RelParquet extends RowSource {
      * Flatten each field of this relation
      */
     @Children
-    private final StatementFlatten[] readers;
+    private final StatementWriteLocal[] writers;
+
+    /**
+     * Where we'll store the ColumnReaders that point to the current file
+     */
+    private final FrameDescriptorPart columnReaders;
 
     /**
      * Where we'll store the fields of this relation
      */
     private final FrameDescriptorPart sourceFrame;
 
-    private RowSink then;
+    @Child
+    protected RowSink then;
 
     public RelParquet(URI file, MessageType schema, List<NamedProjection> project) {
         this.file = file;
         this.schema = schema;
         this.project = project;
-        this.readers = new StatementFlatten[project.size()];
-        this.sourceFrame = FrameDescriptorPart.root(project.size());
+        this.writers = new StatementWriteLocal[project.size()];
+        this.columnReaders = FrameDescriptorPart.root(project.size());
+        this.sourceFrame = columnReaders.push(project.size());
 
         // Check that we are only projecting primitive columns
         for (NamedProjection each : project) {
             assert schema.getType(each.projection.path).isPrimitive() : "Can't project group at " + each.projection + " " + schema.getType(each.projection.path);
         }
 
-        // Allocate frame slots for each column
-        Map<Projection, FrameSlot> slotsByPath = new HashMap<>();
-
         for (int i = 0; i < project.size(); i++) {
-            FrameSlot slot = sourceFrame.findFrameSlot(i);
-            Projection projection = project.get(i).projection;
+            // Fetches the ColumnReader from VirtualFrame
+            ExprReadLocal columnReader = ExprReadLocalNodeGen.create(columnReaders.findFrameSlot(i));
+            // Reads 1 value from Parquet file
+            ExprReadColumn reader = ExprReadColumnNodeGen.create(schema, project.get(i).projection, columnReader);
+            // Writes 1 value to VirtualFrame
+            StatementWriteLocal writer = StatementWriteLocalNodeGen.create(reader, sourceFrame.findFrameSlot(i));
 
-            assert !slotsByPath.containsKey(projection) : "Cannot store projection " + projection + " twice";
-
-            slotsByPath.put(projection, slot);
-        }
-
-        for (int i = 0; i < project.size(); i++) {
-            StatementFlatten reader = StatementFlatten.compile(schema, project.get(i).projection, slotsByPath::get);
-
-            readers[i] = reader;
+            writers[i] = writer;
         }
     }
 
@@ -93,11 +92,16 @@ public class RelParquet extends RowSource {
                 nRows += each.getRowCount();
             }
 
-            // Install ColumnReadStore into each column reader
+            // Install each ColumnReader into frame
             ColumnReadStore readStore = Parquets.columns(file, schema, footer);
 
-            for (StatementFlatten each : readers) {
-                each.prepare(readStore);
+            for (int i = 0; i < project.size(); i++) {
+                NamedProjection path = project.get(i);
+                ColumnDescriptor column = schema.getColumnDescription(path.projection.path);
+                ColumnReader columnReader = readStore.getColumnReader(column);
+                FrameSlot slot = columnReaders.findFrameSlot(i);
+
+                frame.setObject(slot, columnReader);
             }
 
             // Assemble each row
@@ -114,22 +118,18 @@ public class RelParquet extends RowSource {
 
     @ExplodeLoop
     private void writeRow(VirtualFrame frame) {
-        for (StatementFlatten each : readers)
-            each.read(frame);
+        for (StatementWriteLocal each : writers) {
+            each.executeVoid(frame);
+        }
 
         then.executeVoid(frame);
-
-        for (StatementFlatten each : readers)
-            each.consumeRepeats(frame);
     }
 
     @Override
     public void bind(LazyRowSink next) {
-        then = next.apply(sourceFrame);
-
-        // TODO does this create a copy of the AST under each node of the flatten tree?
-        for (StatementFlatten each : readers) {
-            each.bind(then);
-        }
+        if (then == null)
+            then = next.apply(sourceFrame);
+        else
+            then.bind(next);
     }
 }

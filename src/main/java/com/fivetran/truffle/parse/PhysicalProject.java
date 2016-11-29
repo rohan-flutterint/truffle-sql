@@ -59,6 +59,7 @@ class PhysicalProject extends Project implements PhysicalRel {
 
             compiled = input.compile();
         }
+
         return compiled;
     }
 }

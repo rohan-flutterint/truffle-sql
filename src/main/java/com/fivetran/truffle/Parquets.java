@@ -82,10 +82,15 @@ public class Parquets {
     }
 
     public static RelDataType sqlType(Type parquetType, RelDataTypeFactory typeFactory) {
-        return doSqlType(parquetType, typeFactory);
+        RelDataType rawType = sqlTypeIgnoringArray(parquetType, typeFactory);
+
+        if (!(parquetType instanceof MessageType) && parquetType.isRepetition(Type.Repetition.REPEATED))
+            return typeFactory.createArrayType(rawType, -1);
+        else
+            return rawType;
     }
 
-    private static RelDataType doSqlType(Type parquetType, RelDataTypeFactory typeFactory) {
+    private static RelDataType sqlTypeIgnoringArray(Type parquetType, RelDataTypeFactory typeFactory) {
         if (parquetType.isPrimitive()) {
             PrimitiveType.PrimitiveTypeName primitive = parquetType.asPrimitiveType().getPrimitiveTypeName();
 
@@ -96,7 +101,7 @@ public class Parquets {
             RelDataTypeFactory.FieldInfoBuilder builder = typeFactory.builder();
 
             for (Type field : group.getFields()) {
-                builder.add(field.getName(), doSqlType(field, typeFactory));
+                builder.add(field.getName(), sqlType(field, typeFactory));
             }
 
             return builder.build();

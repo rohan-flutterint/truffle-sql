@@ -6,6 +6,7 @@ import com.fivetran.truffle.Projection;
 import com.fivetran.truffle.compile.RelParquet;
 import com.fivetran.truffle.compile.RowSource;
 import org.apache.calcite.plan.*;
+import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
@@ -142,5 +143,16 @@ class PhysicalParquet extends TableScan implements PhysicalRel {
 
             return new NamedProjection(p.name, both);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public RelWriter explainTerms(RelWriter pw) {
+        super.explainTerms(pw);
+
+        for (NamedProjection each : project) {
+            pw.item(each.name, each.projection);
+        }
+
+        return pw;
     }
 }

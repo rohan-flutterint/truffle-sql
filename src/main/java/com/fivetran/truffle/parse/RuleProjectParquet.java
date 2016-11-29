@@ -9,7 +9,6 @@ import org.apache.calcite.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 class RuleProjectParquet extends RelOptRule {
@@ -35,92 +34,96 @@ class RuleProjectParquet extends RelOptRule {
         //
         // The last time it has the expressions, for example SELECT a.b+1 FROM tbl
         // There's nothing more we can do with expressions, so we do nothing
-        paths(fieldNames, project).ifPresent(projections -> {
+        try {
+            List<NamedProjection> projections = paths(fieldNames, project);
             PhysicalParquet pushdown = scan.withProject(projections);
 
             call.transformTo(pushdown);
-        });
+        } catch (ComplexExpressionException e) {
+            // Nothing to do
+        }
     }
 
-    private static Optional<List<NamedProjection>> paths(List<String> fieldNames, PhysicalProject project) {
+    /**
+     * When we encounter a complex expression like table.column + 1, we can't push the expression down into PhysicalParquet.
+     */
+    private static class ComplexExpressionException extends RuntimeException {
+    }
+
+    private static List<NamedProjection> paths(List<String> fieldNames, PhysicalProject project) {
         List<NamedProjection> acc = new ArrayList<>();
 
         for (Pair<RexNode, String> each : project.getNamedProjects()) {
             RexNode exp = each.getKey();
             String name = each.getValue();
-            Optional<Projection> projection = path(fieldNames, exp);
+            Projection projection = path(fieldNames, exp);
 
-            // If expression can't be represented as a simple projection, give up and return empty
-            if (!projection.isPresent())
-                return Optional.empty();
-            // Otherwise add it to the list
-            else
-                acc.add(new NamedProjection(name, projection.get()));
+            acc.add(new NamedProjection(name, projection));
         }
 
-        return Optional.of(acc);
+        return acc;
     }
 
     /**
      * If exp looks like a.b.c, return Projection.of(a, b, c);
      * otherwise return Projection.of()
      */
-    private static Optional<Projection> path(List<String> fieldNames, RexNode exp) {
-        return exp.accept(new RexVisitor<Optional<Projection>>() {
+    private static Projection path(List<String> fieldNames, RexNode exp) {
+        return exp.accept(new RexVisitor<Projection>() {
             @Override
-            public Optional<Projection> visitInputRef(RexInputRef inputRef) {
+            public Projection visitInputRef(RexInputRef inputRef) {
                 String head = fieldNames.get(inputRef.getIndex());
 
-                return Optional.of(Projection.of(head));
+                return Projection.of(head);
             }
 
             @Override
-            public Optional<Projection> visitLocalRef(RexLocalRef localRef) {
-                return Optional.empty();
+            public Projection visitLocalRef(RexLocalRef localRef) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitLiteral(RexLiteral literal) {
-                return Optional.empty();
+            public Projection visitLiteral(RexLiteral literal) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitCall(RexCall call) {
-                return Optional.empty();
+            public Projection visitCall(RexCall call) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitOver(RexOver over) {
-                return Optional.empty();
+            public Projection visitOver(RexOver over) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitCorrelVariable(RexCorrelVariable correlVariable) {
-                return Optional.empty();
+            public Projection visitCorrelVariable(RexCorrelVariable correlVariable) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitDynamicParam(RexDynamicParam dynamicParam) {
-                return Optional.empty();
+            public Projection visitDynamicParam(RexDynamicParam dynamicParam) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitRangeRef(RexRangeRef rangeRef) {
-                return Optional.empty();
+            public Projection visitRangeRef(RexRangeRef rangeRef) {
+                throw new ComplexExpressionException();
             }
 
             @Override
-            public Optional<Projection> visitFieldAccess(RexFieldAccess fieldAccess) {
+            public Projection visitFieldAccess(RexFieldAccess fieldAccess) {
                 RexNode reference = fieldAccess.getReferenceExpr();
-                Optional<Projection> referencePath = reference.accept(this);
+                Projection referencePath = reference.accept(this);
                 String field = fieldAccess.getField().getName();
 
-                return referencePath.map(path -> path.append(field));
+                return referencePath.append(field);
             }
 
             @Override
-            public Optional<Projection> visitSubQuery(RexSubQuery subQuery) {
-                return null;
+            public Projection visitSubQuery(RexSubQuery subQuery) {
+                throw new ComplexExpressionException();
             }
         });
     }

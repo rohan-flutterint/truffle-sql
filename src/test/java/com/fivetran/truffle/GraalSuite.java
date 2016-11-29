@@ -11,6 +11,7 @@ import org.junit.runners.Suite;
         JoinTest.class,
         MockTest.class,
         ParquetTest.class,
+        RuleProjectParquetTest.class,
         RunTest.class
 })
 public class GraalSuite {
