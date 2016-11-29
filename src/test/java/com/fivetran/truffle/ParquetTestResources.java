@@ -15,15 +15,7 @@ public final class ParquetTestResources {
 
     protected static final Logger LOG = Logger.getLogger(ParquetTestResources.class.getName());
 
-    private static MessageType simpleType;
-
     private static URI simplePath;
-
-    public static MessageType simpleType() throws IOException {
-        ensureSimple();
-
-        return simpleType;
-    }
 
     public static URI simplePath() throws IOException {
         ensureSimple();
@@ -32,13 +24,12 @@ public final class ParquetTestResources {
     }
 
     private static void ensureSimple() throws IOException {
-        if (simpleType != null)
+        if (simplePath != null)
             return;
 
-        simpleType = createSimpleType();
         simplePath = Paths.get("./target/generated-test-sources/Simple.parquet").toUri();
 
-        ParquetWriter<Simple> parquetWriter = pojoWriter(simplePath, Simple.class, simpleType);
+        ParquetWriter<Simple> parquetWriter = pojoWriter(simplePath, Simple.class, createSimpleType());
 
         parquetWriter.write(new Simple(1, "One"));
         parquetWriter.write(new Simple(2, "Two"));
