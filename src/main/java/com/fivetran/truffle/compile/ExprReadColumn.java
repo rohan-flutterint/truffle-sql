@@ -7,7 +7,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.Type;
 
 /**
  * Reads a primitive field.
@@ -205,6 +204,7 @@ abstract class ExprReadColumn extends ExprBase {
     }
 
     protected boolean isNullable() {
-        return type.getRepetition() == Type.Repetition.OPTIONAL;
+        // If this field is nullable, or any parent group is nullable, then the column is nullable
+        return maxDefinitionLevel > 0;
     }
 }
