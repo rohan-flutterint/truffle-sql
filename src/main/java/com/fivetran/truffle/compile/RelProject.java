@@ -14,13 +14,9 @@ public class RelProject extends RowTransform {
     @Children
     private final StatementWriteLocal[] select;
 
-    private final FrameDescriptorPart frame;
-
-    public RelProject(FrameDescriptorPart sourceFrame, List<RexNode> project) {
-        super();
-
-        this.select = new StatementWriteLocal[project.size()];
-        this.frame = sourceFrame.push(select.length);
+    public static RelProject compile(FrameDescriptorPart sourceFrame, List<RexNode> project, ThenRowSink next) {
+        StatementWriteLocal[] select = new StatementWriteLocal[project.size()];
+        FrameDescriptorPart frame = sourceFrame.push(select.length);
 
         for (int i = 0; i < project.size(); i++) {
             RexNode child = project.get(i);
@@ -29,12 +25,20 @@ public class RelProject extends RowTransform {
 
             select[i] = StatementWriteLocalNodeGen.create(compiled, slot);
         }
+
+        return new RelProject(select, next.apply(frame));
     }
 
-    private ExprBase compile(FrameDescriptorPart sourceFrame, RexNode child) {
+    private static ExprBase compile(FrameDescriptorPart sourceFrame, RexNode child) {
         CompileExpr compiler = new CompileExpr(sourceFrame);
 
         return child.accept(compiler);
+    }
+
+    public RelProject(StatementWriteLocal[] select, RowSink then) {
+        super(then);
+
+        this.select = select;
     }
 
     @Override
@@ -44,10 +48,5 @@ public class RelProject extends RowTransform {
             each.executeVoid(frame);
 
         then.executeVoid(frame);
-    }
-
-    @Override
-    public FrameDescriptorPart frame() {
-        return frame;
     }
 }

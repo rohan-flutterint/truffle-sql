@@ -74,12 +74,7 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
      * query plans that produce intermediate results may want to call compile(RelRoot, LazyRowSink) for better performance.
      */
     public CallTarget compileInteractiveQuery(RelRoot plan, Consumer<Object[]> then) {
-        LazyRowSink sink = resultFrame -> new RowSink() {
-            @Override
-            public void bind(LazyRowSink next) {
-                throw new UnsupportedOperationException("Final stage cannot be used as a source");
-            }
-
+        ThenRowSink sink = resultFrame -> new RowSink() {
             @Override
             public void executeVoid(VirtualFrame frame) {
                 Object[] values = new Object[resultFrame.size()];
@@ -100,12 +95,10 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         return compile(plan, sink);
     }
 
-    private CallTarget compile(RelRoot plan, LazyRowSink sink) {
+    private CallTarget compile(RelRoot plan, ThenRowSink sink) {
         // Compile query into Truffle program
         PhysicalRel physical = (PhysicalRel) plan.rel;
-        RowSource compiled = physical.compile();
-
-        compiled.bind(sink);
+        RowSource compiled = physical.compile(sink);
 
         // Make executable
         SourceSection sourceSection = SourceSection.createUnavailable("?", "Compiled query");

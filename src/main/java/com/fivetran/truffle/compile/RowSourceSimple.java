@@ -12,15 +12,8 @@ abstract class RowSourceSimple extends RowSource {
     @Child
     protected RowSink then;
 
-    protected RowSourceSimple(FrameDescriptorPart sourceFrame) {
+    protected RowSourceSimple(FrameDescriptorPart sourceFrame, RowSink then) {
         this.sourceFrame = sourceFrame;
-    }
-
-    @Override
-    public void bind(LazyRowSink next) {
-        if (then == null)
-            then = next.apply(sourceFrame);
-        else
-            then.bind(next);
+        this.then = then;
     }
 }

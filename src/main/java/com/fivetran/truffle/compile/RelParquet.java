@@ -55,13 +55,11 @@ public class RelParquet extends RowSource {
     @Child
     protected RowSink then;
 
-    public RelParquet(URI file, MessageType schema, List<NamedProjection> project) {
-        this.file = file;
-        this.schema = schema;
-        this.project = project;
-        this.writers = new StatementWriteLocal[project.size()];
-        this.columnReaders = FrameDescriptorPart.root(project.size());
-        this.sourceFrame = columnReaders.push(project.size());
+
+    public static RowSource compile(URI file, MessageType schema, List<NamedProjection> project, ThenRowSink next) {
+        StatementWriteLocal[] writers = new StatementWriteLocal[project.size()];
+        FrameDescriptorPart columnReaders = FrameDescriptorPart.root(project.size());
+        FrameDescriptorPart sourceFrame = columnReaders.push(project.size());
 
         // Check that we are only projecting primitive columns
         for (NamedProjection each : project) {
@@ -78,6 +76,24 @@ public class RelParquet extends RowSource {
 
             writers[i] = writer;
         }
+
+        return new RelParquet(file, schema, project, writers, columnReaders, sourceFrame, next.apply(sourceFrame));
+    }
+
+    private RelParquet(URI file,
+                       MessageType schema,
+                       List<NamedProjection> project,
+                       StatementWriteLocal[] writers,
+                       FrameDescriptorPart columnReaders,
+                       FrameDescriptorPart sourceFrame,
+                       RowSink then) {
+        this.file = file;
+        this.schema = schema;
+        this.project = project;
+        this.writers = writers;
+        this.columnReaders = columnReaders;
+        this.sourceFrame = sourceFrame;
+        this.then = then;
     }
 
     @Override
@@ -123,13 +139,5 @@ public class RelParquet extends RowSource {
         }
 
         then.executeVoid(frame);
-    }
-
-    @Override
-    public void bind(LazyRowSink next) {
-        if (then == null)
-            then = next.apply(sourceFrame);
-        else
-            then.bind(next);
     }
 }

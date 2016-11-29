@@ -3,6 +3,7 @@ package com.fivetran.truffle.parse;
 import com.fivetran.truffle.compile.RelEmpty;
 import com.fivetran.truffle.compile.RelProject;
 import com.fivetran.truffle.compile.RowSource;
+import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptCost;
 import org.apache.calcite.plan.RelOptPlanner;
@@ -38,28 +39,26 @@ class PhysicalProject extends Project implements PhysicalRel {
     }
 
     @Override
-    public RowSource compile() {
-        RowSource input = compileInput();
-
-        input.bind(sourceFrame -> new RelProject(sourceFrame, getChildExps()));
-
-        return input;
+    public RowSource compile(ThenRowSink last) {
+        return compileInput(sourceFrame -> RelProject.compile(sourceFrame, getProjects(), last));
     }
 
-    private RowSource compileInput() {
+    private RowSource compileInput(ThenRowSink next) {
         // Multiple inputs should never occur in LogicalProject, only in other RelNode implementers like MultiJoin
         assert getInputs().size() <= 1 : "Project has " + getInputs().size() + " inputs";
 
         RowSource compiled;
 
-        if (getInputs().isEmpty())
-            compiled = new RelEmpty();
+        if (getInputs().isEmpty()) {
+            compiled = RelEmpty.compile(next);
+        }
         else {
             PhysicalRel input = (PhysicalRel) getInputs().get(0);
 
-            compiled = input.compile();
+            compiled = input.compile(next);
         }
 
         return compiled;
     }
+
 }

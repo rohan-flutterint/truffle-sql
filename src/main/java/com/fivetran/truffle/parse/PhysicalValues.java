@@ -2,6 +2,7 @@ package com.fivetran.truffle.parse;
 
 import com.fivetran.truffle.compile.RelLiteral;
 import com.fivetran.truffle.compile.RowSource;
+import com.fivetran.truffle.compile.ThenRowSink;
 import com.google.common.collect.ImmutableList;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptCost;
@@ -26,7 +27,7 @@ class PhysicalValues extends Values implements PhysicalRel {
     }
 
     @Override
-    public RowSource compile() {
-        return new RelLiteral(this);
+    public RowSource compile(ThenRowSink next) {
+        return RelLiteral.compile(this, next);
     }
 }

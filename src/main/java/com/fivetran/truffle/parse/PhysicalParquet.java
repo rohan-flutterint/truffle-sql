@@ -5,6 +5,7 @@ import com.fivetran.truffle.Parquets;
 import com.fivetran.truffle.Projection;
 import com.fivetran.truffle.compile.RelParquet;
 import com.fivetran.truffle.compile.RowSource;
+import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.TableScan;
@@ -110,8 +111,8 @@ class PhysicalParquet extends TableScan implements PhysicalRel {
     }
 
     @Override
-    public RowSource compile() {
-        return new RelParquet(file, schema, project);
+    public RowSource compile(ThenRowSink next) {
+        return RelParquet.compile(file, schema, project, next);
     }
 
     /**

@@ -13,16 +13,7 @@ abstract class RowTransform extends RowSink {
     @Child
     protected RowSink then;
 
-    protected RowTransform() {
+    protected RowTransform(RowSink then) {
+        this.then = then;
     }
-
-    @Override
-    public void bind(LazyRowSink next) {
-        if (then == null)
-            then = next.apply(frame());
-        else
-            then.bind(next);
-    }
-
-    public abstract FrameDescriptorPart frame();
 }

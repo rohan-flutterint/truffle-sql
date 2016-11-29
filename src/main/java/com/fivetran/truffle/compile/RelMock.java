@@ -21,8 +21,17 @@ public class RelMock extends RowSourceSimple {
     private final Class<?> type;
     private final Object[] rows;
 
-    public RelMock(RelDataType relType, Class<?> type, Object[] rows) {
-        super(FrameDescriptorPart.root(relType.getFieldCount()));
+    public static RelMock compile(RelDataType relType, Class<?> type, Object[] rows, ThenRowSink then) {
+        FrameDescriptorPart frame = FrameDescriptorPart.root(relType.getFieldCount());
+        RowSink sink = then.apply(frame);
+
+        return new RelMock(relType, frame, type, rows, sink);
+    }
+
+    private RelMock(RelDataType relType, FrameDescriptorPart frame, Class<?> type, Object[] rows, RowSink then) {
+        super(frame, then);
+
+        assert relType.getFieldCount() == frame.size();
 
         this.relType = relType;
         this.type = type;

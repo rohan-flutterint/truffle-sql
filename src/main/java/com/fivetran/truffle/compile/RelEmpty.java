@@ -8,8 +8,16 @@ import com.oracle.truffle.api.Truffle;
  */
 public class RelEmpty extends RowSourceSimple {
 
-    public RelEmpty() {
-        super(FrameDescriptorPart.root(0));
+    public static RowSource compile(ThenRowSink next) {
+        FrameDescriptorPart empty = FrameDescriptorPart.root(0);
+
+        return new RelEmpty(empty, next.apply(empty));
+    }
+
+    private RelEmpty(FrameDescriptorPart empty, RowSink next) {
+        super(empty, next);
+
+        assert empty.size() == 0;
     }
 
     @Override

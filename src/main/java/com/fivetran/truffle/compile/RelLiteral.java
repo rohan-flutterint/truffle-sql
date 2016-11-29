@@ -15,8 +15,15 @@ import java.util.List;
 public class RelLiteral extends RowSourceSimple {
     private final Values values;
 
-    public RelLiteral(Values values) {
-        super(FrameDescriptorPart.root(values.getRowType().getFieldCount()));
+    public static RowSource compile(Values values, ThenRowSink then) {
+        FrameDescriptorPart frame = FrameDescriptorPart.root(values.getRowType().getFieldCount());
+        RowSink sink = then.apply(frame);
+
+        return new RelLiteral(frame, values, sink);
+    }
+
+    private RelLiteral(FrameDescriptorPart frame, Values values, RowSink then) {
+        super(frame, then);
 
         this.values = values;
     }

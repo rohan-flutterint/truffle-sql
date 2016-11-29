@@ -1,6 +1,7 @@
 package com.fivetran.truffle.parse;
 
 import com.fivetran.truffle.compile.RowSource;
+import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.Convention;
 import org.apache.calcite.rel.RelNode;
 
@@ -13,7 +14,7 @@ public interface PhysicalRel extends RelNode {
     /**
      * Compile into an executable Truffle expression
      */
-    RowSource compile();
+    RowSource compile(ThenRowSink next);
 
     /** Calling convention for Truffle expressions files */
     Convention CONVENTION = new Convention.Impl("TRUFFLE", PhysicalRel.class);

@@ -2,6 +2,7 @@ package com.fivetran.truffle.parse;
 
 import com.fivetran.truffle.compile.RelUnion;
 import com.fivetran.truffle.compile.RowSource;
+import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
@@ -30,10 +31,12 @@ class PhysicalUnion extends Union implements PhysicalRel {
     }
 
     @Override
-    public RowSource compile() {
+    public RowSource compile(ThenRowSink next) {
+        // TODO it would probably be better to treat `next` as a function and invoke it
+        // I think this effectively copies the `next` expression into each part of the union
         RowSource[] sources = getInputs()
                 .stream()
-                .map(i -> ((PhysicalRel) i).compile())
+                .map(i -> ((PhysicalRel) i).compile(next))
                 .toArray(RowSource[]::new);
 
         return new RelUnion(sources);
