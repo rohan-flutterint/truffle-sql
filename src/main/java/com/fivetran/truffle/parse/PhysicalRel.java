@@ -7,8 +7,11 @@ import org.apache.calcite.rel.RelNode;
 
 /**
  * Relational expression that uses the Truffle calling convention.
+ *
  * Calling convention is a Calcite concept; Calcite produces a logical query plan (for example LogicalProject)
- * which we convert into a physical query plan (for example PhysicalProject).
+ * which gets converted by VolcanoPlanner into a physical query plan (for example PhysicalProject) using RuleConvert*.
+ *
+ * Once everything has been converted to PhysicalRel, we can invoke compile(next), which produces a Truffle expression.
  */
 public interface PhysicalRel extends RelNode {
     /**
