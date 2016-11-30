@@ -3,6 +3,7 @@ package com.fivetran.truffle;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -100,6 +101,28 @@ public class MockTest extends SqlTestBase {
         };
 
         List<Object[]> results = query("SELECT m.id, m.nested.x, m.nested.yy.y FROM TABLE(mock()) AS m");
+
+        assertThat(results, containsInAnyOrder(new Object[][] {
+                {1L, 2L, 3L},
+                {4L, 5L, 6L},
+                {10L, null, null}
+        }));
+    }
+
+    /**
+     * Reference a nested column in a complicated, indirect way
+     */
+    @Test
+    @Ignore // https://issues.apache.org/jira/browse/CALCITE-1518
+    public void nestedTwoStage() throws IOException, SQLException {
+        mockRows = new Object[]{
+                new IdNested(1, 2, 3),
+                new IdNested(4, 5, 6),
+                new IdNested(10)
+        };
+
+        List<Object[]> results = query("SELECT m.id, m.nested.x, m.nested.yy.y FROM " +
+                                       "(SELECT id, nested FROM TABLE(mock())) AS m");
 
         assertThat(results, containsInAnyOrder(new Object[][] {
                 {1L, 2L, 3L},

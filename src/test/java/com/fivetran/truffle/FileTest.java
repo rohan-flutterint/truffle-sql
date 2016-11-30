@@ -81,6 +81,7 @@ public class FileTest extends SqlTestBase {
      * Reference a nested column in a complicated, indirect way
      */
     @Test
+    @Ignore // https://issues.apache.org/jira/browse/CALCITE-1518
     public void nestedTwoStage() throws IOException, SQLException {
         List<Object[]> rows = query("SELECT t.cases.`upper` " +
                                     "FROM (SELECT cases FROM TABLE(file('" + simplePath() + "'))) AS t");
