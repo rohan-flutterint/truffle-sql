@@ -94,11 +94,51 @@ public class PushToPull {
     }
 
     /**
+     * Simulates an iterator-like strategy. A producer sets a value, a consumer adds up a running total,
+     * and a lock coordinates the two threads.
+     */
+    @Benchmark
+    public void customQueue() {
+        IntQueue it = new IntQueue();
+
+        Thread producer = new Thread(() -> {
+            Random random = new Random();
+
+            for (int i = 0; i < N; i++) {
+                int row = random.nextInt(2);
+
+                it.put(row);
+            }
+
+            it.close();
+        });
+
+        producer.start();
+
+        int sum = 0;
+
+        try {
+            while (true) {
+                int value = it.get();
+
+                sum += value;
+            }
+        } catch (ClosedException e) {
+            // Done
+        }
+
+        if (sum < N * .4)
+            throw new RuntimeException(sum + " < 0.4");
+        else if (sum > N * .6)
+            throw new RuntimeException(sum + " > 0.6");
+    }
+
+    /**
      * Use a blocking queue with 100 elements to implement an iterator-like strategy.
      * Similar to {@link this#pull()}, but allows the producer thread to run for longer before it blocks.
      */
     @Benchmark
-    public void queue() {
+    public void javaQueue() {
         BlockingQueue<Integer> q = new ArrayBlockingQueue<>(100);
         int done = Integer.MAX_VALUE;
 
@@ -286,5 +326,74 @@ class IntIterator {
                 // Nothing to do
             case Closed:
         }
+    }
+}
+
+class IntQueue {
+    /**
+     * This is a FILO queue.
+     * A FIFO queue would make more sense for a real query engine,
+     * but this is simpler and good enough for benchmarking.
+     */
+    private final int[] next = new int[100];
+    /**
+     * Number of elements in the queue.
+     * -1 indicates queue has been closed by the producer
+     */
+    private int size = 0;
+
+    synchronized void put(int value) {
+        // Wait for consumer to get value
+        while (size == next.length) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Set value, and maybe notify waiting consumer
+        next[size] = value;
+        size++;
+        notify();
+    }
+
+    synchronized int get() throws ClosedException {
+        // Wait for producer to put value, or close
+        while (size == 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (size == -1)
+            throw new ClosedException();
+        else {
+            // Get value, and maybe notify waiting producer
+            // This is FILO not FIFO, which is not how we would do it in a real query engine
+            int result = next[size - 1];
+
+            size--;
+            notify();
+
+            return result;
+        }
+    }
+
+    synchronized void close() {
+        // Wait for consumer to get value
+        while (size > 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Close iterator, next call to get() will throw ClosedException
+        size = -1;
+        notify();
     }
 }
