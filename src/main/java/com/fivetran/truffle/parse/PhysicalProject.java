@@ -4,12 +4,10 @@ import com.fivetran.truffle.compile.RelEmpty;
 import com.fivetran.truffle.compile.RelProject;
 import com.fivetran.truffle.compile.RowSource;
 import com.fivetran.truffle.compile.ThenRowSink;
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelOptCost;
-import org.apache.calcite.plan.RelOptPlanner;
-import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.plan.*;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Project;
+import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
@@ -17,7 +15,18 @@ import org.apache.calcite.rex.RexNode;
 import java.util.List;
 
 class PhysicalProject extends Project implements PhysicalRel {
-    PhysicalProject(RelOptCluster cluster,
+
+    static PhysicalRel convert(LogicalProject from) {
+        return new PhysicalProject(
+                from.getCluster(),
+                from.getTraitSet().replace(CONVENTION),
+                RelOptRule.convert(from.getInput(), CONVENTION),
+                from.getProjects(),
+                from.getRowType()
+        );
+    }
+
+    private PhysicalProject(RelOptCluster cluster,
                     RelTraitSet traits,
                     RelNode input,
                     List<? extends RexNode> projects,

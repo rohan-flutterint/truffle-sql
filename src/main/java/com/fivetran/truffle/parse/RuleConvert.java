@@ -22,5 +22,5 @@ abstract class RuleConvert<From extends RelNode> extends ConverterRule {
         return doConvert(fromClass.cast(rel));
     }
 
-    protected abstract PhysicalRel doConvert(From cast);
+    protected abstract PhysicalRel doConvert(From from);
 }

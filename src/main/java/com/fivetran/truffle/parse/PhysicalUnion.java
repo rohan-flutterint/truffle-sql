@@ -4,15 +4,33 @@ import com.fivetran.truffle.compile.RelUnion;
 import com.fivetran.truffle.compile.RowSource;
 import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.SetOp;
 import org.apache.calcite.rel.core.Union;
+import org.apache.calcite.rel.logical.LogicalUnion;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 class PhysicalUnion extends Union implements PhysicalRel {
-    protected PhysicalUnion(RelOptCluster cluster,
+
+    static PhysicalRel convert(LogicalUnion union) {
+        List<RelNode> inputs = union.getInputs()
+                .stream()
+                .map(i -> RelOptRule.convert(i, CONVENTION))
+                .collect(Collectors.toList());
+
+        return new PhysicalUnion(
+                union.getCluster(),
+                union.getTraitSet().replace(CONVENTION),
+                inputs,
+                union.all
+        );
+    }
+
+    private PhysicalUnion(RelOptCluster cluster,
                             RelTraitSet traits,
                             List<RelNode> inputs,
                             boolean all) {

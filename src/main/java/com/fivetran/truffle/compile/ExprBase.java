@@ -13,6 +13,8 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 @NodeInfo(description = "The abstract base node for all expressions")
 abstract class ExprBase extends Node {
     /**
+     * Compute the value of the expression. Called once for each expression in each row of a query.
+     *
      * @param frame One row of data. Each FrameSlot corresponds to one column.
      * @return Result of evaluating the expression
      */
