@@ -7,6 +7,8 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Measures the performance of converting a push-based query like:
@@ -83,6 +85,58 @@ public class PushToPull {
             }
         } catch (ClosedException e) {
             // Done
+        }
+
+        if (sum < N * .4)
+            throw new RuntimeException(sum + " < 0.4");
+        else if (sum > N * .6)
+            throw new RuntimeException(sum + " > 0.6");
+    }
+
+    /**
+     * Use a blocking queue with 100 elements to implement an iterator-like strategy.
+     * Similar to {@link this#pull()}, but allows the producer thread to run for longer before it blocks.
+     */
+    @Benchmark
+    public void queue() {
+        BlockingQueue<Integer> q = new ArrayBlockingQueue<>(100);
+        int done = Integer.MAX_VALUE;
+
+        Thread producer = new Thread(() -> {
+            Random random = new Random();
+
+            for (int i = 0; i < N; i++) {
+                int row = random.nextInt(2);
+
+                try {
+                    q.put(row);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            try {
+                q.put(done);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        producer.start();
+
+        int sum = 0;
+
+        while (true) {
+            try {
+                int value = q.take();
+
+                if (value == done)
+                    break;
+                else
+                    sum += value;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         if (sum < N * .4)
