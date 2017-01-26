@@ -97,7 +97,7 @@ public class PushToPull {
      * Simulates an iterator-like strategy. A producer sets a value, a consumer adds up a running total,
      * and a lock coordinates the two threads.
      */
-    @Benchmark
+    /* @Benchmark Ignored because it's slower than javaQueue */
     public void customQueue() {
         IntQueue it = new IntQueue();
 
@@ -190,7 +190,7 @@ public class PushToPull {
      * Consumer maintains an extra bit of state, so it knows when it is receiving the first row.
      * Producer makes an extra call at the end to invoke any final operations.
      */
-    @Benchmark
+    /* @Benchmark Ignored because this strategy is really hard to implement in Truffle/Graal */
     public void stateful() {
         Random random = new Random();
         IntStage next = new IntStage();
