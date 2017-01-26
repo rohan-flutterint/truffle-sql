@@ -243,6 +243,7 @@ public class TruffleMeta extends MetaImpl {
 
         planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
 
+        planner.addRule(RuleConvertAggregate.INSTANCE);
         planner.addRule(RuleConvertProject.INSTANCE);
         planner.addRule(RuleConvertUnion.INSTANCE);
         planner.addRule(RuleConvertValues.INSTANCE);

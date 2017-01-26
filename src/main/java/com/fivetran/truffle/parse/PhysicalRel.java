@@ -2,6 +2,7 @@ package com.fivetran.truffle.parse;
 
 import com.fivetran.truffle.compile.RowSource;
 import com.fivetran.truffle.compile.ThenRowSink;
+import com.fivetran.truffle.compile.ThenRowSource;
 import org.apache.calcite.plan.Convention;
 import org.apache.calcite.rel.RelNode;
 
@@ -13,7 +14,7 @@ import org.apache.calcite.rel.RelNode;
  *
  * Once everything has been converted to PhysicalRel, we can invoke compile(next), which produces a Truffle expression.
  */
-public interface PhysicalRel extends RelNode {
+public interface PhysicalRel extends RelNode, ThenRowSource {
     /**
      * Compile into an executable Truffle expression
      */
