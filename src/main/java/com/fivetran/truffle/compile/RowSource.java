@@ -8,5 +8,8 @@ import com.oracle.truffle.api.nodes.Node;
  * Could be a literal, or a file somewhere.
  */
 public abstract class RowSource extends Node {
+    /**
+     * Flush all rows. Called once for the entire execution of the query.
+     */
     protected abstract void executeVoid();
 }
