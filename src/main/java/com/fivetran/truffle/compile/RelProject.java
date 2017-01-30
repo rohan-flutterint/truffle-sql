@@ -21,18 +21,12 @@ public class RelProject extends RowTransform {
         for (int i = 0; i < project.size(); i++) {
             RexNode child = project.get(i);
             FrameSlot slot = frame.findFrameSlot(i);
-            ExprBase compiled = compile(sourceFrame, child);
+            ExprBase compiled = CompileExpr.compile(sourceFrame, child);
 
             select[i] = StatementWriteLocalNodeGen.create(compiled, slot);
         }
 
         return new RelProject(select, next.apply(frame));
-    }
-
-    private static ExprBase compile(FrameDescriptorPart sourceFrame, RexNode child) {
-        CompileExpr compiler = new CompileExpr(sourceFrame);
-
-        return child.accept(compiler);
     }
 
     public RelProject(StatementWriteLocal[] select, RowSink then) {

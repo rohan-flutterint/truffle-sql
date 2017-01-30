@@ -19,7 +19,7 @@ import com.oracle.truffle.api.object.*;
         @NodeChild(value = "receiverNode", type = ExprBase.class),
         @NodeChild(value = "valueNode", type = ExprBase.class)
 })
-abstract class ExprWriteProperty extends StatementBase {
+abstract class StatementWriteProperty extends StatementBase {
     protected static final int CACHE_LIMIT = 3;
 
     /**
@@ -27,7 +27,7 @@ abstract class ExprWriteProperty extends StatementBase {
      */
     protected String name;
 
-    ExprWriteProperty(String name) {
+    StatementWriteProperty(String name) {
         this.name = name;
     }
 

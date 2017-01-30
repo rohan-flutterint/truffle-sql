@@ -10,6 +10,7 @@ import org.junit.runners.Suite;
         FileTest.class,
         JoinTest.class,
         MockTest.class,
+        OrderByTest.class,
         ParquetTest.class,
         RuleProjectParquetTest.class,
         RunTest.class

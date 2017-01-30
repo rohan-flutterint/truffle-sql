@@ -16,6 +16,13 @@ import java.util.Objects;
  * an ExprBase reads column values from VirtualFrame and produces a value.
  */
 class CompileExpr implements RexVisitor<ExprBase> {
+
+    static ExprBase compile(FrameDescriptorPart sourceFrame, RexNode child) {
+        CompileExpr compiler = new CompileExpr(sourceFrame);
+
+        return child.accept(compiler);
+    }
+
     /**
      * FROM clause of SQL query.
      *
