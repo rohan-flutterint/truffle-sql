@@ -1,6 +1,7 @@
 package com.fivetran.truffle.parse;
 
 import com.fivetran.truffle.compile.ExternalSort;
+import com.fivetran.truffle.compile.InMemorySorter;
 import com.fivetran.truffle.compile.RowSource;
 import com.fivetran.truffle.compile.ThenRowSink;
 import org.apache.calcite.plan.RelOptCluster;
@@ -24,7 +25,7 @@ class PhysicalSort extends Sort implements PhysicalRel {
 
     @Override
     public RowSource compile(ThenRowSink next) {
-        return ExternalSort.compile((PhysicalRel) input, collation.getFieldCollations(), next);
+        return ExternalSort.compile((PhysicalRel) input, collation.getFieldCollations(), new InMemorySorter(), next);
     }
 
     @Override

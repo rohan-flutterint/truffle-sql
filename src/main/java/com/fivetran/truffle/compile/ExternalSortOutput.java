@@ -9,15 +9,14 @@ import org.apache.calcite.rel.type.RelDataType;
 
 import java.util.function.Supplier;
 
-
 class ExternalSortOutput extends RowSource {
     /**
-     * External sorter that produces the next row from the external sort, or null if finished.
+     * External sorter that produces the next row from the external sort.
      *
      * It's kind of weird that we have a direct reference to the external sorter.
      * The reason this works is because each Truffle program is compiled and run only once.
      */
-    private final Supplier<DynamicObject> sorter;
+    private final Iterable<DynamicObject> sorter;
 
     /**
      * Shape of frame we will allocate for this stage
@@ -41,7 +40,7 @@ class ExternalSortOutput extends RowSource {
     @Child
     private RowSink then;
 
-    private ExternalSortOutput(Supplier<DynamicObject> sorter,
+    private ExternalSortOutput(Iterable<DynamicObject> sorter,
                                FrameDescriptor sourceFrame,
                                FrameSlot tupleSlot,
                                StatementExplodeTuple explodeTuple,
@@ -58,7 +57,7 @@ class ExternalSortOutput extends RowSource {
      * @param inputShape Shape of rows we created on the input side, which should indicate D
      * @param next What to do with each row in this stage
      */
-    static ExternalSortOutput compile(Supplier<DynamicObject> sorter,
+    static ExternalSortOutput compile(Iterable<DynamicObject> sorter,
                                       RelDataType inputShape,
                                       ThenRowSink next) {
         // 1 slot for the DynamicObject tuple, n frames for the n exploded columns
@@ -73,9 +72,8 @@ class ExternalSortOutput extends RowSource {
     @Override
     protected void executeVoid() {
         VirtualFrame frame = Truffle.getRuntime().createVirtualFrame(new Object[]{}, sourceFrame);
-        DynamicObject tuple = sorter.get();
 
-        while (tuple != null) {
+        for (DynamicObject tuple : sorter) {
             // tuple = sorter.get()
             frame.setObject(tupleSlot, tuple);
 
@@ -86,8 +84,6 @@ class ExternalSortOutput extends RowSource {
 
             // ...execute rest of stage...
             then.executeVoid(frame);
-
-            tuple = sorter.get();
         }
     }
 }
