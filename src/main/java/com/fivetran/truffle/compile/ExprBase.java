@@ -31,5 +31,4 @@ abstract class ExprBase extends Node {
     double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
         return SqlTypesGen.expectDouble(executeGeneric(frame));
     }
-
 }

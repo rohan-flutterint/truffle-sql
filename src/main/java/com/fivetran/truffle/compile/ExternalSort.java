@@ -1,11 +1,18 @@
 package com.fivetran.truffle.compile;
 
 import com.fivetran.truffle.parse.PhysicalRel;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.apache.calcite.rel.RelFieldCollation;
+import org.apache.calcite.rel.type.RelDataType;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -19,7 +26,6 @@ import java.util.function.Supplier;
  * which each have a reference to the same external sort stage,
  * which is a kind of global variable.
  */
-// TODO sort should probably be a local operation, with shuffle as the global operation
 public class ExternalSort extends RowSource {
 
     /**
@@ -28,14 +34,23 @@ public class ExternalSort extends RowSource {
     @Child
     private RowSource inputToSort;
 
+    private final List<DynamicObject> externalSorter;
+
+    private final Comparator<DynamicObject> comparator;
+
     /**
      * Second stage flushes externally sorted rows to output
      */
     @Child
     private RowSource sortToOutput;
 
-    public ExternalSort(RowSource inputToSort, RowSource sortToOutput) {
+    public ExternalSort(RowSource inputToSort,
+                        List<DynamicObject> externalSorter,
+                        Comparator<DynamicObject> comparator,
+                        RowSource sortToOutput) {
         this.inputToSort = inputToSort;
+        this.externalSorter = externalSorter;
+        this.comparator = comparator;
         this.sortToOutput = sortToOutput;
     }
 
@@ -54,9 +69,6 @@ public class ExternalSort extends RowSource {
         if (orderBy.isEmpty())
             throw new IllegalArgumentException("orderBy should not be empty");
 
-        // This is just a placeholder for an external sorter
-        // Doesn't actually sort and isn't external
-        // TODO replace with a string reference to an external stage, which is effectively a global variable
         List<DynamicObject> externalSorter = new ArrayList<>();
 
         // First stage sends rows to external sorter
@@ -84,12 +96,28 @@ public class ExternalSort extends RowSource {
         };
         ExternalSortOutput sortToOutput = ExternalSortOutput.compile(nextRow, input.getRowType(), next);
 
-        return new ExternalSort(inputToSort, sortToOutput);
+        // Compile a custom function that can be called from Java that compares tuples
+        Comparator<DynamicObject> compareFn = compileComparator(orderBy);
+
+        return new ExternalSort(inputToSort, externalSorter, compareFn, sortToOutput);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Comparator<DynamicObject> compileComparator(List<RelFieldCollation> orderBy) {
+        ExprReadArgument left = new ExprReadArgument(0), right = new ExprReadArgument(1);
+        ExprCompareTuples compareExpression = new ExprCompareTuples(left, right, orderBy);
+        Class<Comparator> asType = Comparator.class;
+        Comparator comparator = TruffleSqlLanguage.compileFunction(compareExpression, asType);
+
+        return (Comparator<DynamicObject>) comparator;
     }
 
     @Override
     protected void executeVoid() {
         inputToSort.executeVoid();
+
+        externalSorter.sort(comparator);
+
         sortToOutput.executeVoid();
     }
 }

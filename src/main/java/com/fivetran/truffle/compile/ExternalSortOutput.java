@@ -9,6 +9,7 @@ import org.apache.calcite.rel.type.RelDataType;
 
 import java.util.function.Supplier;
 
+
 class ExternalSortOutput extends RowSource {
     /**
      * External sorter that produces the next row from the external sort, or null if finished.

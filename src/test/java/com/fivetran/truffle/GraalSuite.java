@@ -1,5 +1,6 @@
 package com.fivetran.truffle;
 
+import com.fivetran.truffle.compile.ForeignAccess;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -8,6 +9,7 @@ import org.junit.runners.Suite;
         DynamicTypeTest.class,
         ExpressionTest.class,
         FileTest.class,
+        ForeignAccess.class,
         JoinTest.class,
         MockTest.class,
         OrderByTest.class,

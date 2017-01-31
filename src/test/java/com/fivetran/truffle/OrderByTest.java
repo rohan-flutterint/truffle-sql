@@ -6,8 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OrderByTest extends SqlTestBase {
@@ -19,18 +18,17 @@ public class OrderByTest extends SqlTestBase {
 
         assertThat(rows, not(empty()));
 
-//        TODO
-//        Object[] lastRow = rows.get(0);
-//
-//        for (int i = 1; i < rows.size(); i++) {
-//            Object[] thisRow = rows.get(i);
-//            Long lastInt = (Long) lastRow[0];
-//            Long thisInt = (Long) thisRow[0];
-//
-//            assertThat(thisInt, greaterThanOrEqualTo(lastInt));
-//
-//            lastRow = thisRow;
-//        }
+        Object[] lastRow = rows.get(0);
+
+        for (int i = 1; i < rows.size(); i++) {
+            Object[] thisRow = rows.get(i);
+            Long lastInt = (Long) lastRow[0];
+            Long thisInt = (Long) thisRow[0];
+
+            assertThat(thisInt, greaterThanOrEqualTo(lastInt));
+
+            lastRow = thisRow;
+        }
     }
 
     private Object[] random(int n) {

@@ -2,11 +2,13 @@ package com.fivetran.truffle.compile;
 
 import com.fivetran.truffle.parse.PhysicalRel;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -102,7 +104,7 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
 
         // Make executable
         SourceSection sourceSection = SourceSection.createUnavailable("?", "Compiled query");
-        SqlRootNode root = new SqlRootNode(sourceSection, compiled);
+        RelRootNode root = new RelRootNode(sourceSection, compiled);
 
         return Truffle.getRuntime().createCallTarget(root);
     }
@@ -125,5 +127,16 @@ public class TruffleSqlLanguage extends TruffleLanguage<TruffleSqlContext> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <Fn> Fn compileFunction(ExprBase functionBody, Class<Fn> functionalInterface) {
+        if (!functionalInterface.isAnnotationPresent(FunctionalInterface.class))
+            throw new IllegalArgumentException(functionalInterface + " is not a @FunctionalInterface");
+
+        SourceSection sourceSection = SourceSection.createUnavailable("?", "Compiled query");
+        ExprRoot compareRoot = new ExprRoot(sourceSection, functionBody);
+        RootCallTarget compareCallTarget = Truffle.getRuntime().createCallTarget(compareRoot);
+
+        return JavaInterop.asJavaFunction(functionalInterface, new TruffleSqlFunction(compareCallTarget));
     }
 }
